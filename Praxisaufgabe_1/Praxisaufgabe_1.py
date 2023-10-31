@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pylab
 import sounddevice as sd
-import keyboard
+#import keyboard
+#import pygame
 
 fs = 20000 
 
@@ -25,14 +26,14 @@ current_index = 0
 audio_level = []
 
 def frequencyHeard():
-    print(f"\n input 1 for not hearing the sound, input 2 for hearing the sound")
-
+    value = input(f"\n input n for not hearing the sound, input y for hearing the sound: ")
+    #keys = pygame.key.get_pressed()
     while True:
-        if keyboard.is_pressed("1"):
+        if value == "n" or value == "N":
             return False
-        if keyboard.is_pressed("2"):
+        if value == "y" or value == "Y":
             return True
-        if keyboard.is_pressed(" "):
+        if value == ".":
             plt.plot(freqs, audio_level)
             plt.show()
             break
