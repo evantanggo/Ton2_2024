@@ -7,9 +7,9 @@ import math
 from scipy.io.wavfile import read
 import numpy as np
 
-dataMono = np.array
-file = 'sägezahn_440Hz_mono.wav' #um file zu ändern Dateinamen anpassen
-(Fs, y) = read(file)
+dataMono = np.array #hier erstellt ein leeres array
+file = 'sinus_100Hz_2s.wav' #um file zu ändern Dateinamen anpassen
+(Fs, y) = read(file) #Fs = 44100Hz
 
 if y.ndim == 2: #überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
     y_L = y[:,0]
@@ -18,17 +18,31 @@ if y.ndim == 2: #überprüft, ob die Datei Stereo oder Mono ist und rechnet sie 
 else:
     dataMono = y
 
-T = len(dataMono)
+T = len(dataMono) #Anzahl der Werte
+print(f"T", T)
+
 samples = np.arange(len(dataMono)) #erstellt ein Array mit so viele Werten
 
 def effektivWert(daten):
     global T, samples
 
     daten = daten.astype(np.float64) #andert in float 64
-    square = np.square(daten)
+    square = np.square(daten) #quadrieren
     integral = sum(square)  # summiert alle Werte des Arrays
-    eWert = math.sqrt(1 / T * integral)  # rechnet das Integral * 1/T und zieht die Wurzel
+
+    eWert = math.sqrt((1/T) * integral)  # rechnet das Integral * 1/T und zieht die Wurzel
+
     return eWert
+
+def gleichRichtwert(daten):
+    global T, samples
+    daten = daten.astype(np.float64)
+    for i in range(len(daten)):
+        daten[i] = abs([daten[i]]) # Betrag aller Werte des Arrays
+    integral = sum(daten)
+    gWert = 1/T * integral
+    return gWert
+
 
 def scheitelFaktor(effektivWert):
     global dataMono
@@ -39,5 +53,7 @@ def scheitelFaktor(effektivWert):
     c = aMax/effektivWert
     return c
 
-print(f"Effektivwert= ",effektivWert(dataMono))
-print(f"Crest Faktor= ",scheitelFaktor(effektivWert(dataMono)))
+print(f"Datei = ", file)
+print(f"Effektivwert = ", effektivWert(dataMono))
+print(f"Crest Faktor = ", scheitelFaktor(effektivWert(dataMono)))
+
