@@ -8,8 +8,8 @@ from scipy.io.wavfile import read
 import numpy as np
 
 dataMono = np.array
-file = 'sinus_440Hz_mono.wav' #um file zu ändern Dateinamen anpassen
-(Fs, y) = read (file)
+file = 'sägezahn_440Hz_mono.wav' #um file zu ändern Dateinamen anpassen
+(Fs, y) = read(file)
 
 if y.ndim == 2: #überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
     y_L = y[:,0]
@@ -30,10 +30,14 @@ def effektivWert(daten):
     eWert = math.sqrt(1 / T * integral)  # rechnet das Integral * 1/T und zieht die Wurzel
     return eWert
 
-#def gleichRichtWert(daten):
-    #global T, samples
+def scheitelFaktor(effektivWert):
+    global dataMono
+    y_max = np.max(dataMono)
+    y_min = np.min(dataMono)
+    aMax = max(y_max, abs(y_min))
 
+    c = aMax/effektivWert
+    return c
 
-
-print(effektivWert(dataMono))
-
+print(f"Effektivwert= ",effektivWert(dataMono))
+print(f"Crest Faktor= ",scheitelFaktor(effektivWert(dataMono)))

@@ -105,7 +105,7 @@ def referenzLevel():  # fragt referenzlevel vor Test ab und speicher es ein
     global ref_level
     global start_audiolevel
 
-    f = 1000
+    f = 1000 # das ist ein Verdeckungsfrequenz
     y_peak = start_audiolevel
 
     while True:
