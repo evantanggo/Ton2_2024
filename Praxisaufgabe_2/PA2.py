@@ -1,6 +1,7 @@
 '''
 Praxisaufgabe 2
 Tontechnik_WS23
+Gruppe 6
 '''
 
 import math
@@ -13,7 +14,7 @@ from scipy.signal import correlate
 
 def aufgabe_1und2():  # Crestfaktor berechnen
 
-    file = 'sägezahn_440Hz_mono_3s.wav'  # Dateinamen anpassen, um file zu ändern
+    file = '21_Piano2.wav'  # Dateinamen anpassen, um file zu ändern
     Fs, y = read(file)  # Fs = 44100Hz
 
     if y.ndim == 2:
@@ -91,6 +92,9 @@ def aufgabe_4():  # Orthogonalität der Sinusschwingungen
 
     print("\n")
     print("Aufgabe 4 (Orthogonalität)")
+    # print("Um nachzuweisen, dass Sinusschwingungen unterschiedlicher "
+    #      "Frequenzen orthogonal zueinander sind, "
+    #     "müssen wir zeigen, dass ihr Skalarprodukt verschwindet (gleich 0)\n")
     print(f"Summer der Integral von beiden Schwingungen ist: {result}")
 
 
@@ -123,7 +127,6 @@ def aufgabe_5():
 
         return dataMono1
 
-
     def calculate_energy(signal):
         signal = signal.astype(np.float64)
         square = np.square(signal)  # quadrieren
@@ -134,12 +137,22 @@ def aufgabe_5():
     def calculate_total_energy(signal1, signal2):
         return calculate_energy(signal1) + calculate_energy(signal2)
 
+    #
+    def calculate_cross_correlation(signal1, signal2):
+        # Padding auf das doppelte der Länge der längeren Sequenz
+        padded_length = 2 * max(len(signal1), len(signal2))
+        padded_signal1 = np.pad(signal1, (0, padded_length - len(signal1)))
+        padded_signal2 = np.pad(signal2, (0, padded_length - len(signal2)))
+
+        # Berechnung der Kreuzkorrelation
+        cross_correlation = np.fft.ifft(np.fft.fft(padded_signal1) * np.fft.fft(padded_signal2).conj()).real
+        return cross_correlation
+
     def calculate_correlation_factor(signal1, signal2):
-        correlation = correlate(signal1, signal2, mode='full')
-        max_correlation = np.max(correlation)
+        cross_correlation = calculate_cross_correlation(signal1, signal2)
+        max_correlation = np.max(cross_correlation)
         energy_product = calculate_energy(signal1) * calculate_energy(signal2)
         return max_correlation / np.sqrt(energy_product)
-
 
     individual_energy1 = calculate_energy(file1())
     individual_energy2 = calculate_energy(file2())
@@ -152,6 +165,7 @@ def aufgabe_5():
     print(f'Individual Energy 2: {individual_energy2}')
     print(f'Total Energy: {total_energy}')
     print(f'Correlation Factor: {correlation_factor}')
+
 
 # Ausführen
 if __name__ == "__main__":
