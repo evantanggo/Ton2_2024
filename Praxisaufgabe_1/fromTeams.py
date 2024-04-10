@@ -1,6 +1,3 @@
-# Evan Tanggo Peter Simamora
-# Jo Borgwardt
-# Jannik Pohl
 # Test der Hörschwelle mit Überdeckungseffekt
 
 import numpy as np
@@ -9,22 +6,23 @@ import sounddevice as sd
 
 
 # Abspielen von Tönen
-def play_tone(frequency, amplitude, has_masking_sound, masking_frequency):
+"""def play_tone(frequency, amplitude, has_masking_sound, masking_frequency):"""
+def play_tone(frequency, amplitude):
     fs = 42000
     duration = 1.0
-    fade_in_duration = 0.05
+    """fade_in_duration = 0.05
     fade_out_duration = 0.05
-    fade_out_start = duration - fade_out_duration
+    fade_out_start = duration - fade_out_duration"""
 
     t = np.linspace(0, duration, int(duration * fs))
     signal = amplitude * np.cos(2 * np.pi * frequency * t)
 
-    if has_masking_sound:
+    """ if has_masking_sound:
         masking_signal = 0.1 * np.cos(2 * np.pi * masking_frequency * t)
         signal += masking_signal
 
     signal[t <= fade_in_duration] *= t[t <= fade_in_duration] / fade_in_duration
-    signal[t >= fade_out_start] *= 1 - (t[t >= fade_out_start] - fade_out_start) / fade_out_duration
+    signal[t >= fade_out_start] *= 1 - (t[t >= fade_out_start] - fade_out_start) / fade_out_duration """
 
     sd.play(signal)
 
@@ -52,7 +50,7 @@ results = np.ones(frequencies.size)
 # Testen der Töne
 for i, frequency in enumerate(frequencies):
     for j, amplitude in enumerate(amplitudes):
-        play_tone(frequency, amplitude, False, 600)
+        play_tone(frequency, amplitude)
         if query(frequency, amplitude):
             results[i] = amplitude
             break
