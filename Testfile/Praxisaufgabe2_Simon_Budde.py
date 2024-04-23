@@ -28,8 +28,8 @@ sägezahn = np.array(x_dach * signal.sawtooth(2 * np.pi * f * t, 1))
 rechteck = np.array(x_dach * signal.square(2 * np.pi * f * t))
 
 # Audio-Dateien
-Fs, m_data = read('/Users/simonbudde/Desktop/High_and_Dry.wav')
-Fs, s_data = read('/Users/simonbudde/Desktop/Peter Pan.wav')
+Fs, m_data = read('Praxisaufgabe_2/Piano.wav')
+Fs, s_data = read('Praxisaufgabe_2/sprache.wav')
 mono_data = (m_data[:,0] + m_data[:,1] / 2)
 sono_data = (s_data[:,0] + s_data[:,1] / 2)
 

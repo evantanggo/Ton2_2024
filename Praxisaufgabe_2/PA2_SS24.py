@@ -8,7 +8,6 @@ from scipy.io.wavfile import read
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import quad
-from scipy.signal import correlate
 
 def effektiv_wert(daten):
     T = len(daten)
