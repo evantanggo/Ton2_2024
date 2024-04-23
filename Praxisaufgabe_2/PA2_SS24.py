@@ -1,7 +1,6 @@
 '''
 Praxisaufgabe 2
-Tontechnik_WS23
-Gruppe 6
+Tontechnik_SS24
 '''
 
 import math
@@ -14,9 +13,10 @@ from scipy.signal import correlate
 
 def aufgabe_1und2():  # Crestfaktor berechnen
 
-    file = '21_Piano2.wav'  # Dateinamen anpassen, um file zu ändern
+    file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/21_Piano2.wav'  # Dateinamen anpassen, um file zu ändern
     Fs, y = read(file)  # Fs = 44100Hz
 
+    # Datei in Mono umwandeln
     if y.ndim == 2:
         y_L = y[:, 0]
         y_R = y[:, 1]
@@ -27,16 +27,16 @@ def aufgabe_1und2():  # Crestfaktor berechnen
     T = len(dataMono)
 
     def effektiv_wert(daten):
-        daten = daten.astype(np.float64)
-        square = np.square(daten)
-        integral = np.sum(square)
-        eWert = math.sqrt((1 / T) * integral)
+        daten = daten.astype(np.float64) #in float 
+        square = np.square(daten) 
+        integral = np.sum(square) 
+        eWert = math.sqrt((1 / T) * integral) 
         return eWert
 
     def scheitel_faktor(effektivWert):
         y_max = np.max(dataMono)
         y_min = np.min(dataMono)
-        aMax = max(y_max, y_min)
+        aMax = max(y_max, y_min) #Scheitelwert finden. 
         c = aMax / effektivWert
         return c
 
@@ -101,7 +101,7 @@ def aufgabe_4():  # Orthogonalität der Sinusschwingungen
 def aufgabe_5():
     def file1():
 
-        file = '21_Piano2.wav'  # um file zu ändern Dateinamen anpassen
+        file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/21_Piano2.wav'  # um file zu ändern Dateinamen anpassen
         (Fs, y) = read(file)  # Fs = 44100Hz
 
         if y.ndim == 2:  # überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
@@ -115,7 +115,7 @@ def aufgabe_5():
 
     def file2():
 
-        file = '45_VoxSFX4.wav'  # um file zu ändern Dateinamen anpassen
+        file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/45_VoxSFX4.wav'  # um file zu ändern Dateinamen anpassen
         (Fs, y) = read(file)  # Fs = 44100Hz
 
         if y.ndim == 2:  # überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
