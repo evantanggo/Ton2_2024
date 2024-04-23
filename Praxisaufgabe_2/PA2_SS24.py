@@ -11,9 +11,28 @@ from scipy.integrate import quad
 from scipy.signal import correlate
 
 
-def aufgabe_1und2():  # Crestfaktor berechnen
+import numpy as np
+import math
+from scipy.io.wavfile import read
 
-    file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/21_Piano2.wav'  # Dateinamen anpassen, um file zu ändern
+def effektiv_wert(daten):
+    T = len(daten)
+    daten = daten.astype(np.float64) # in float 
+    square = np.square(daten) 
+    integral = np.sum(square) 
+    eWert = math.sqrt((1 / T) * integral) 
+    return eWert
+
+def scheitel_faktor(daten):
+    y_max = np.max(daten)
+    y_min = np.min(daten)
+    aMax = max(y_max, y_min) # Scheitelwert finden. 
+    eWert = effektiv_wert(daten)
+    c = aMax / eWert
+    return c
+
+def aufgabe_1und2(file):  # Crestfaktor berechnen
+
     Fs, y = read(file)  # Fs = 44100Hz
 
     # Datei in Mono umwandeln
@@ -24,27 +43,14 @@ def aufgabe_1und2():  # Crestfaktor berechnen
     else:
         dataMono = y
 
-    T = len(dataMono)
-
-    def effektiv_wert(daten):
-        daten = daten.astype(np.float64) #in float 
-        square = np.square(daten) 
-        integral = np.sum(square) 
-        eWert = math.sqrt((1 / T) * integral) 
-        return eWert
-
-    def scheitel_faktor(effektivWert):
-        y_max = np.max(dataMono)
-        y_min = np.min(dataMono)
-        aMax = max(y_max, y_min) #Scheitelwert finden. 
-        c = aMax / effektivWert
-        return c
-
-    print("Aufgabe 1 / 2")
-    print(f"Datei = ", file)
-    # print(f"Effektivwert = ", effektiv_wert(dataMono))
-    print(f"Crest Faktor = ", scheitel_faktor(effektiv_wert(dataMono)))
+    #print("Aufgabe 1 / 2")
+    print(f"Datei = {file}")
+    print(f"Crest Faktor = {scheitel_faktor(dataMono):.2f}")
     print("\n")
+
+# Dateien untersuchen
+dateien = ['Praxisaufgabe_2/Piano.wav', 'Praxisaufgabe_2/sprache.wav', 'Praxisaufgabe_2/sinus.wav', 'Praxisaufgabe_2/saegezahn.wav', 'Praxisaufgabe_2/rechteck.wav']
+
 
 
 def aufgabe_3():  # Sinusschwingung
@@ -74,8 +80,8 @@ def aufgabe_3():  # Sinusschwingung
 
     print("Aufgabe 3")
     print("Sinusschwingung mit f = 100 Hz und t = 2s")
-    print(f"Einzelenergie = ", einzel_energie(), "Joule")
-    print(f"Effektivwert = ", effektiv_wert(y))
+    print(f"Einzelenergie = {einzel_energie():.2f} Joule")
+    print(f"Effektivwert = {effektiv_wert(y):.2f}")
 
 
 def aufgabe_4():  # Orthogonalität der Sinusschwingungen
@@ -97,79 +103,11 @@ def aufgabe_4():  # Orthogonalität der Sinusschwingungen
     #     "müssen wir zeigen, dass ihr Skalarprodukt verschwindet (gleich 0)\n")
     print(f"Summer der Integral von beiden Schwingungen ist: {result}")
 
-
-def aufgabe_5():
-    def file1():
-
-        file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/21_Piano2.wav'  # um file zu ändern Dateinamen anpassen
-        (Fs, y) = read(file)  # Fs = 44100Hz
-
-        if y.ndim == 2:  # überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
-            y_L = y[:, 0]
-            y_R = y[:, 1]
-            dataMono = (y_L + y_R) / 2
-        else:
-            dataMono = y
-
-        return dataMono
-
-    def file2():
-
-        file = '/Users/evantanggo/VisualStudio/Ton2_2024/Praxisaufgabe_2/45_VoxSFX4.wav'  # um file zu ändern Dateinamen anpassen
-        (Fs, y) = read(file)  # Fs = 44100Hz
-
-        if y.ndim == 2:  # überprüft, ob die Datei Stereo oder Mono ist und rechnet sie in Mono um
-            y_L = y[:, 0]
-            y_R = y[:, 1]
-            dataMono1 = (y_L + y_R) / 2
-        else:
-            dataMono1 = y
-
-        return dataMono1
-
-    def calculate_energy(signal):
-        signal = signal.astype(np.float64)
-        square = np.square(signal)  # quadrieren
-        integral = sum(square)  # summiert alle Werte des Arrays
-
-        return integral
-
-    def calculate_total_energy(signal1, signal2):
-        return calculate_energy(signal1) + calculate_energy(signal2)
-
-    #
-    def calculate_cross_correlation(signal1, signal2):
-        # Padding auf das doppelte der Länge der längeren Sequenz
-        padded_length = 2 * max(len(signal1), len(signal2))
-        padded_signal1 = np.pad(signal1, (0, padded_length - len(signal1)))
-        padded_signal2 = np.pad(signal2, (0, padded_length - len(signal2)))
-
-        # Berechnung der Kreuzkorrelation
-        cross_correlation = np.fft.ifft(np.fft.fft(padded_signal1) * np.fft.fft(padded_signal2).conj()).real
-        return cross_correlation
-
-    def calculate_correlation_factor(signal1, signal2):
-        cross_correlation = calculate_cross_correlation(signal1, signal2)
-        max_correlation = np.max(cross_correlation)
-        energy_product = calculate_energy(signal1) * calculate_energy(signal2)
-        return max_correlation / np.sqrt(energy_product)
-
-    individual_energy1 = calculate_energy(file1())
-    individual_energy2 = calculate_energy(file2())
-    total_energy = calculate_total_energy(file1(), file2())
-    correlation_factor = calculate_correlation_factor(file1(), file2())
-
-    print("\n")
-    print("Aufgabe 5")
-    print(f'Individual Energy 1: {individual_energy1}')
-    print(f'Individual Energy 2: {individual_energy2}')
-    print(f'Total Energy: {total_energy}')
-    print(f'Correlation Factor: {correlation_factor}')
-
-
 # Ausführen
 if __name__ == "__main__":
-    aufgabe_1und2()
+    print("Aufgabe 1 / 2")
+    for datei in dateien:
+        aufgabe_1und2(datei)
     aufgabe_3()
     aufgabe_4()
-    aufgabe_5()
+    
