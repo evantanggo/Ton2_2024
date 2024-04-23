@@ -10,11 +10,6 @@ import matplotlib.pyplot as plt
 from scipy.integrate import quad
 from scipy.signal import correlate
 
-
-import numpy as np
-import math
-from scipy.io.wavfile import read
-
 def effektiv_wert(daten):
     T = len(daten)
     daten = daten.astype(np.float64) # in float 
