@@ -96,12 +96,14 @@ def aufgabe_4():  # Orthogonalität der Sinusschwingungen
 
     result, error = quad(integrand, 0, 1, args=(f1, f2))
 
+    # Runden auf Null, wenn das Ergebnis sehr nah an Null liegt
+    if abs(result) < 1e-10:
+        result = 0
+
     print("\n")
     print("Aufgabe 4 (Orthogonalität)")
-    # print("Um nachzuweisen, dass Sinusschwingungen unterschiedlicher "
-    #      "Frequenzen orthogonal zueinander sind, "
-    #     "müssen wir zeigen, dass ihr Skalarprodukt verschwindet (gleich 0)\n")
     print(f"Summer der Integral von beiden Schwingungen ist: {result}")
+
 
 # Ausführen
 if __name__ == "__main__":
