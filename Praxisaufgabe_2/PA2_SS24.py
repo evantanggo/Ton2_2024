@@ -61,7 +61,8 @@ def aufgabe_3():  # Sinusschwingung
     y = y_dach * np.sin(2 * np.pi * f * t)  # Sinusschwingung
 
     def einzel_energie():
-        energie = sum(y ** 2)
+        #energie = sum(y ** 2)
+        energie = (effektiv_wert(y)**2) * dauer # richtige Formel für Energie
 
         return energie
 
@@ -86,9 +87,9 @@ def aufgabe_4():  # Orthogonalität der Sinusschwingungen
         return np.sin(2 * np.pi * f2 * x)
 
     def integrand(x, f1, f2):
-        return f1(x, 1.0) * f2(x, 2.0)  # Hier ist f2 = 2 * f1
+        return f1(x, 1.0) * f2(x, 1.0)  # Hier ist f2 = 2 * f1
 
-    result, error = quad(integrand, 0, 1, args=(f1, f2))
+    result, error = quad(integrand, 0, 2, args=(f1, f2))
 
     # Runden auf Null, wenn das Ergebnis sehr nah an Null liegt
     if abs(result) < 1e-10:
