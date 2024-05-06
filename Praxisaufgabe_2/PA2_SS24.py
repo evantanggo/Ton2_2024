@@ -50,7 +50,7 @@ dateien = ['Praxisaufgabe_2/Piano.wav', 'Praxisaufgabe_2/sprache.wav', 'Praxisau
 def aufgabe_3():  # Sinusschwingung
 
     Fs = 44100  # Abtastfrequenz, Fs >= 2*fmax
-    f = 100  # Signalfrequenz
+    f = 200  # Signalfrequenz
     y_dach = 1  # Amplitude (ist Maximalwert für Wiedergabe mit sounddevice)
     dauer = 2  # Dauer in sec.
     deltat = 1. / Fs  # Ts; Schrittweite für Signalerzeugung.
@@ -61,7 +61,7 @@ def aufgabe_3():  # Sinusschwingung
     y = y_dach * np.sin(2 * np.pi * f * t)  # Sinusschwingung
 
     def einzel_energie():
-        energie = sum(y ** 2)
+        energie = sum(y ** 2) /Fs
 
         return energie
 
@@ -74,6 +74,7 @@ def aufgabe_3():  # Sinusschwingung
 
     print("Aufgabe 3")
     print("Sinusschwingung mit f = 100 Hz und t = 2s")
+    print(y)
     print(f"Einzelenergie = {einzel_energie():.2f} Joule")
     print(f"Effektivwert = {effektiv_wert(y):.2f}")
 
