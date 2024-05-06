@@ -76,6 +76,7 @@ if __name__ == "__main__":
     print(f"Korrelationsfaktor: {correlation_factor :.2f}")
     print("\n")
     print(f"Gesamtenergie: {total_energy(energie[0], energie[1], correlation_factor):.2f}")
+    print("\n")
     
 
     
