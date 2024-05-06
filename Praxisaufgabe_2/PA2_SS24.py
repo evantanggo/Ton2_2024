@@ -61,7 +61,7 @@ def aufgabe_3():  # Sinusschwingung
     y = y_dach * np.sin(2 * np.pi * f * t)  # Sinusschwingung
 
     def einzel_energie():
-        energie = sum(y ** 2)
+        energie = sum(y ** 2) / Fs
 
         return energie
 
