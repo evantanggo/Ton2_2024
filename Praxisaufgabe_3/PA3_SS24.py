@@ -10,7 +10,7 @@ from scipy.io import wavfile
 import warnings
 import os
 
-def berechne_energie(file_path): 
+def importiere_daten(file_path):
     try:
         # Datei einlesen
         with warnings.catch_warnings():
@@ -25,16 +25,27 @@ def berechne_energie(file_path):
         else:
             mono_data = audio_data
         
-        # Energie berechnen
-        energy = sum(mono_data ** 2) / sample_rate
-
-        print(f"Datei: {file_path}")
-        print(f"Einzelenergie: {energy:.2f}")
-        print("\n")
+        return sample_rate, mono_data
 
     except Exception as e:
-        print(f"Fehler beim Verarbeiten der Datei {file_path}: {str(e)}")
-        print("\n")
+        print(f"Fehler beim Importieren der Daten aus {file_path}: {str(e)}")
+        return None, None
+
+def berechne_energie(sample_rate, audio_data): 
+    try:
+        # Energie berechnen
+        energy = sum(audio_data ** 2) / sample_rate
+
+        return energy
+
+    except Exception as e:
+        print(f"Fehler beim Berechnen der Energie: {str(e)}")
+        return None
+
+def correlation_factor(energy1, energy2, audio_datei1, audio_datei2):
+    signal = sum(audio_datei1 * audio_datei2)
+
+    return signal / np.sqrt(energy1 * energy2)
 
 # Basisverzeichnis, in dem sich das Skript befindet
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -46,5 +57,21 @@ dateien_pfade = [os.path.join(base_dir, datei) for datei in dateien]
 # Ausführen
 if __name__ == "__main__":
     print("Aufgabe 1a")
+    energie = []
+    list_audiodata = []
     for datei_pfad in dateien_pfade:
-        berechne_energie(datei_pfad)
+        print(f"Datei: {datei_pfad}")
+        sample_rate, mono_data = importiere_daten(datei_pfad)
+        list_audiodata.append(mono_data)
+
+        if sample_rate is not None and mono_data is not None:
+            print(f"Einzelenergie: {berechne_energie(sample_rate, mono_data):.2f}")
+            print("\n")
+            #berechne_energie(sample_rate, audio_data)
+            energie.append(berechne_energie(sample_rate, mono_data))
+
+    print(f"Korrelationsfaktor:{correlation_factor(energie[0], energie[1], list_audiodata[0], list_audiodata[1]):.2f}")
+    
+
+            
+
