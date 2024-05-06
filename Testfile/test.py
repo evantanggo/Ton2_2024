@@ -1,33 +1,24 @@
 import numpy as np
-import math
+from scipy.integrate import quad
 
-def aufgabe_3():  # Sinusschwingung
+def aufgabe_4():  # Orthogonalität der Sinusschwingungen
+    def f1(x, f):
+        return np.sin(2 * np.pi * f * x)
 
-    Fs = 44100  # Abtastfrequenz, Fs >= 2*fmax
-    f = 100  # Signalfrequenz
-    y_dach = 1  # Amplitude (ist Maximalwert für Wiedergabe mit sounddevice)
-    dauer = 2  # Dauer in sec.
-    deltat = 1. / Fs  # Ts; Schrittweite für Signalerzeugung.
+    def f2(x, f):
+        return np.sin(2 * np.pi * 1*f * x)  # Hier ist f2 = 2 * f1
 
-    # Sinus erzeugen:
-    t = np.arange(0, dauer, deltat)  # Zeit-Werte
-    T = len(t)
-    y = y_dach * np.sin(2 * np.pi * f * t)  # Sinusschwingung
+    def integrand(x, f):
+        return f1(x, f) * f2(x, f) 
 
-    def einzel_energie(y):
-        energie = np.sum(y ** 2)
-        return energie
+    result, error = quad(integrand, 0, 2, args=(1.0,))
 
-    def effektiv_wert(y):
-        y = y.astype(np.float64)
-        square = np.square(y)
-        integral = np.sum(square)
-        eWert = math.sqrt((1 / T) * integral)
-        return eWert
+    # Runden auf Null, wenn das Ergebnis sehr nah an Null liegt
+    if abs(result) < 1e-10:
+        result = 0
 
-    print("Aufgabe 3")
-    print("Sinusschwingung mit f = 100 Hz und t = 2s")
-    print(f"Einzelenergie = {einzel_energie(y):.2f} Joule")
-    print(f"Effektivwert = {effektiv_wert(y):.2f}")
+    print("\n")
+    print("Aufgabe 4 (Orthogonalität)")
+    print(f"Summe des Integrals von beiden Schwingungen ist: {result}")
 
-aufgabe_3()
+aufgabe_4()
