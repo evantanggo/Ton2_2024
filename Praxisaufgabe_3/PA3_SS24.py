@@ -7,11 +7,15 @@ import math
 from scipy.io.wavfile import read
 import numpy as np
 from scipy.io import wavfile
+import warnings
+import os
 
 def berechne_energie(file_path): 
     try:
         # Datei einlesen
-        sample_rate, audio_data = wavfile.read(file_path)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            sample_rate, audio_data = wavfile.read(file_path)
         
         # Datei in Mono umwandeln, wenn Stereo
         if audio_data.ndim == 2:
@@ -24,8 +28,6 @@ def berechne_energie(file_path):
         # Energie berechnen
         energy = sum(mono_data ** 2) / sample_rate
 
-        
-
         print(f"Datei: {file_path}")
         print(f"Einzelenergie: {energy:.2f}")
         print("\n")
@@ -34,11 +36,15 @@ def berechne_energie(file_path):
         print(f"Fehler beim Verarbeiten der Datei {file_path}: {str(e)}")
         print("\n")
 
-# Dateien untersuchen
-dateien = ['Praxisaufgabe_3/vokal1.wav', 'Praxisaufgabe_3/vokal2.wav']
+# Basisverzeichnis, in dem sich das Skript befindet
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Dateien untersuchen (verwenden Sie relative Pfade)
+dateien = ['vokal1.wav', 'vokal2.wav']
+dateien_pfade = [os.path.join(base_dir, datei) for datei in dateien]
 
 # Ausführen
 if __name__ == "__main__":
-    print("Aufgabe 1 / 2")
-    for datei in dateien:
-        berechne_energie(datei)
+    print("Aufgabe 1a")
+    for datei_pfad in dateien_pfade:
+        berechne_energie(datei_pfad)
