@@ -1,24 +1,24 @@
+from scipy.io.wavfile import read
 import numpy as np
-from scipy.integrate import quad
 
-def aufgabe_4():  # Orthogonalität der Sinusschwingungen
-    def f1(x, f):
-        return np.sin(2 * np.pi * f * x)
+def calculate_energy(file_path):
+    try:
+        # WAV-Datei einlesen
+        sample_rate, audio_data = read(file_path)
+        
+        # Einzelenergie berechnen
+        energy = np.sum(audio_data.astype(np.float64) ** 2) / sample_rate
+        
+        return energy
+    
+    except Exception as e:
+        print(f"Fehler beim Berechnen der Einzelenergie: {str(e)}")
+        return None
 
-    def f2(x, f):
-        return np.sin(2 * np.pi * 1*f * x)  # Hier ist f2 = 2 * f1
+# Pfad zur WAV-Datei
+file_path = 'Praxisaufgabe_3/vokal1.wav'
 
-    def integrand(x, f):
-        return f1(x, f) * f2(x, f) 
-
-    result, error = quad(integrand, 0, 2, args=(1.0,))
-
-    # Runden auf Null, wenn das Ergebnis sehr nah an Null liegt
-    if abs(result) < 1e-10:
-        result = 0
-
-    print("\n")
-    print("Aufgabe 4 (Orthogonalität)")
-    print(f"Summe des Integrals von beiden Schwingungen ist: {result}")
-
-aufgabe_4()
+# Einzelenergie berechnen
+energy = calculate_energy(file_path)
+if energy is not None:
+    print(f"Einzelenergie der WAV-Datei: {energy:.2f}")
