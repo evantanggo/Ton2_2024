@@ -75,8 +75,6 @@ def correlation_factor(energy1, energy2, audio_data1, audio_data2, sample_rate):
     correlation = signal / norm_factor
     return correlation
 
-
-
 def total_energy(energy1, energy2, correlationsfactor):
     total_energy = energy1 + energy2 + 2 * correlationsfactor * np.sqrt(energy1 * energy2)
 
@@ -123,7 +121,7 @@ def main():
 
     correlation = correlation_factor(energie[0], energie[1], list_audiodata[0], list_audiodata[1], sample_rate)
     totalenergy = total_energy(energie[0], energie[1], correlation)
-    print(f"Korrelationsfaktor: {correlation :.2f}")
+    print(f"Korrelationsfaktor: {correlation :.4f}")
     print("\n")
     print(f"Gesamtenergie: {totalenergy :.2f}")
 
