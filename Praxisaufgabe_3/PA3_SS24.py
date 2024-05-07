@@ -1,6 +1,8 @@
 '''
 Praxisaufgabe 3
 Tontechnik_SS24
+Gruppe 11
+Simon Budde, Tanggo Simamora, Lukas Lobmann, Anton Müller
 '''
 
 from scipy.io.wavfile import read
@@ -116,21 +118,27 @@ def main():
         if sample_rate is not None and mono_data is not None:
             print(f"Einzelenergie: {count_energy(mono_data, sample_rate):.2f}")
             print("\n")
+            
             energie.append(count_energy(mono_data, sample_rate))
 
     correlation = correlation_factor(energie[0], energie[1], list_audiodata[0], list_audiodata[1], sample_rate)
-
+    totalenergy = total_energy(energie[0], energie[1], correlation)
     print(f"Korrelationsfaktor: {correlation :.2f}")
     print("\n")
-    print(f"Gesamtenergie: {total_energy(energie[0], energie[1], correlation):.2f}")
+    print(f"Gesamtenergie: {totalenergy :.2f}")
 
     print("___________________________\n")
     print("Aufgabe 1b\n")
-    signal = np.sum( list_audiodata[0] * list_audiodata[1]) /sample_rate
+    #signal = np.convolve( list_audiodata[0], list_audiodata[1], mode ='same')
+    signal = list_audiodata[0] + list_audiodata[1]
     soundlevel= sound_level(correlation, len(energie))
     effective_value = effektiv_wert(signal, num_samples )
+    mittelwert_energie = (energie[0] + energie[1]) / 2
+    pegelsum = 10 * np.log10(totalenergy / mittelwert_energie)
+
     print(f"Jede Kanäle muss um {soundlevel:.2f} db abgesenkt werden, damit es vollgesteuert ist\n")
     print(f"Effektivwert des Gesamtsignals von {len(energie)} Kanälen ist {effective_value:.2f}\n")
+    print(f"Pegel der Summe ist {pegelsum:.2f}db \n ")
 
 # Ausführen
 if __name__ == "__main__":
