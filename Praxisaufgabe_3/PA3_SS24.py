@@ -43,14 +43,14 @@ def count_energy(audio_data, sample_rate):
         print(f"Fehler beim Berechnen der Energie: {str(e)}")
         return None
 
-# def effektiv_wert(y, T):
+def effektiv_wert(y, T):
     y = y.astype(np.float64)
     square = np.square(y)
     integral = np.sum(square)
     eWert = (np.sqrt((1 / T) * integral))
     return eWert
 
-# def duration_in_seconds(sample_rate, audio_data):
+def duration_in_seconds(sample_rate, audio_data):
     # Anzahl der Samples in der Audiodatei
     num_samples = len(audio_data)
     
@@ -70,7 +70,8 @@ def correlation_factor(energy1, energy2, audio_data1, audio_data2, sample_rate):
         return 0  # To avoid division by zero
         
     #print(energy1, energy2, audio_data1, audio_data2) 
-    return (signal / norm_factor)
+    correlation = signal / norm_factor
+    return correlation
 
 
 
@@ -108,7 +109,7 @@ def main():
     for datei_pfad in dateien_pfade:
         print(f"Datei: {datei_pfad}")
         sample_rate, mono_data = import_data(datei_pfad)
-       # duration, num_samples = duration_in_seconds(sample_rate, mono_data)
+        duration, num_samples = duration_in_seconds(sample_rate, mono_data)
 
         list_audiodata.append(mono_data)
 
@@ -118,15 +119,18 @@ def main():
             energie.append(count_energy(mono_data, sample_rate))
 
     correlation = correlation_factor(energie[0], energie[1], list_audiodata[0], list_audiodata[1], sample_rate)
-    
+
     print(f"Korrelationsfaktor: {correlation :.2f}")
     print("\n")
     print(f"Gesamtenergie: {total_energy(energie[0], energie[1], correlation):.2f}")
-    print("\n")
 
-    print("Aufgabe 1b")
+    print("___________________________\n")
+    print("Aufgabe 1b\n")
+    signal = np.sum( list_audiodata[0] * list_audiodata[1]) /sample_rate
     soundlevel= sound_level(correlation, len(energie))
+    effective_value = effektiv_wert(signal, num_samples )
     print(f"Jede Kanäle muss um {soundlevel:.2f} db abgesenkt werden, damit es vollgesteuert ist\n")
+    print(f"Effektivwert des Gesamtsignals von {len(energie)} Kanälen ist {effective_value:.2f}\n")
 
 # Ausführen
 if __name__ == "__main__":
