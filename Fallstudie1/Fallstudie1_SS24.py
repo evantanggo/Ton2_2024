@@ -1,6 +1,11 @@
+"""
+Ton2 SS24, Fallstudie
+Praxisproblem 1
+Evan Tanggo Peter Simamora
+2332397
+"""
+
 import os
-import librosa
-import librosa.display
 import sounddevice as sd
 from scipy.io.wavfile import read
 import matplotlib.pyplot as plt
@@ -12,7 +17,9 @@ import warnings
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Datei untersuchen (verwenden Sie den relativen Pfad)
-file_path = os.path.join(base_dir, "Datei_B.wav")
+file_path = os.path.join(base_dir, "test_h_von_t_W23.wav")
+#test_h_von_t_W23.wav
+#Datei_B.wav
 
 def import_data(file_path):
     try:
@@ -64,50 +71,67 @@ def calculate_fft(signal, sample_rate):
     return frequencies, fft_values, amplitude_spectrum
 
 def schroeder_plot(audio_data, sample_rate):
-    schroeder = []
-    zeit = []
-    energy = np.sum(audio_data ** 2) / sample_rate  # Total energy of the signal
+    energy = np.sum(audio_data ** 2)  # Total energy of the signal
+    cumulative_energy = np.cumsum(audio_data[::-1] ** 2)[::-1]
+    schroeder = 10 * np.log10(cumulative_energy / energy)
+    zeit = np.arange(len(audio_data)) / sample_rate
 
-    # Initialisierung der Variablen
-    t_10, t_20, t_30, t_40 = None, None, None, None
+    # Berechnung der Nachhallzeiten
+    try:
+        t_10 = np.where(schroeder <= -10)[0][0]
+        l_10 = schroeder[t_10]
+    except IndexError:
+        t_10 = None
+        l_10 = None
 
-    for t in range(0, len(audio_data), 1000):
-        frame_energy = np.sum(np.square(audio_data[t:t+1000])) / sample_rate
-        if frame_energy > 0:  # Avoid log(0) which is undefined
-            schroeder.append(10 * np.log10(frame_energy / energy))
-            zeit.append(t / sample_rate)
+    try:
+        t_20 = np.where(schroeder <= -20)[0][0]
+        l_20 = schroeder[t_20]
+    except IndexError:
+        t_20 = None
+        l_20 = None
 
-        if t_10 is None and frame_energy <= energy * 0.1:
-            t_10 = t / sample_rate
-        if t_20 is None and frame_energy <= energy * 0.01:
-            t_20 = t / sample_rate
-        if t_30 is None and frame_energy <= energy * 0.001:
-            t_30 = t / sample_rate
-        if t_40 is None and frame_energy <= energy * 0.0001:
-            t_40 = t / sample_rate
+    try:
+        t_30 = np.where(schroeder <= -30)[0][0]
+        l_30 = schroeder[t_30]
+    except IndexError:
+        t_30 = None
+        l_30 = None
 
-    return schroeder, zeit, energy, t_10, t_20, t_30, t_40
+    try:
+        t_40 = np.where(schroeder <= -40)[0][0]
+        l_40 = schroeder[t_40]
+    except IndexError:
+        t_40 = None
+        l_40 = None
+
+    return schroeder, zeit, l_10, l_20, l_30, l_40, t_10, t_20, t_30, t_40
 
 def nachhallzeit(t_anfang, t_ende, pegelAbstand):
-    T = (60 * (t_ende - t_anfang)) / pegelAbstand
+    if t_anfang is None or t_ende is None:
+        return None
+    T = (60 * (t_ende - t_anfang)) / abs(pegelAbstand)
     return T
 
 def calculate_c50_c80(audio_data, sample_rate):
     # Berechne das quadratische Signal
-    raumquad = np.square(audio_data)
+    energy = np.square(audio_data)
     
     # Berechne n_50 und n_80
     n_50 = int(sample_rate * 0.05)
     n_80 = int(sample_rate * 0.08)
 
     # Berechne C50 und C80
-    C50 = 10 * np.log10(sum(raumquad[0:n_50]) / sum(raumquad[n_50:]))
-    C80 = 10 * np.log10(sum(raumquad[0:n_80]) / sum(raumquad[n_80:]))
+    C50 = 10 * np.log10(sum(energy[0:n_50]) / sum(energy[n_50:]))
+    C80 = 10 * np.log10(sum(energy[0:n_80]) / sum(energy[n_80:]))
 
     return C50, C80
 
 def main():
     sample_rate, audio_data = import_data(file_path) # Fs, y
+    if audio_data is None:
+        return
+
     impulse_start = find_impulse_start(audio_data)
     
     # Berechne die Zeit des Impulsstarts in Sekunden
@@ -117,7 +141,7 @@ def main():
     audio_data = audio_data[impulse_start:]
 
     frequencies, fft_values, amplitude_spectrum = calculate_fft(audio_data, sample_rate)
-    schroeder, zeit, energy, t_10, t_20, t_30, t_40 = schroeder_plot(audio_data, sample_rate)
+    schroeder, zeit, l_10, l_20, l_30, l_40, t_10, t_20, t_30, t_40 = schroeder_plot(audio_data, sample_rate)
 
     # Hier für Amplitudenfrequenzgang
     # Bereich von 0 bis 20 kHz auswählen
@@ -125,18 +149,50 @@ def main():
     freq_selected = frequencies[freq_range]
     amp_selected = amplitude_spectrum[freq_range]
 
+    # Play the panned audio
+    print("\nPlaying audio...")
+    sd.play(audio_data, sample_rate)
+    sd.wait()  # Wait until the audio is finished playing
+    
     # Nachhallzeit-Berechnung
-    T_10 = nachhallzeit(t_10, t_20, 10)
-    T_20 = nachhallzeit(t_10, t_30, 20)
-    T_30 = nachhallzeit(t_10, t_40, 30)
-    print(f"\nT10 ist {T_10:.2f} s")
-    print(f"T20 ist {T_20:.2f} s")
-    print(f"T30 ist {T_30:.2f} s")
+    T_10 = nachhallzeit(t_10 / sample_rate, t_20 / sample_rate, (l_20-l_10))
+    T_20 = nachhallzeit(t_10 / sample_rate, t_30 / sample_rate, (l_30-l_10))
+    T_30 = nachhallzeit(t_10 / sample_rate, t_40 / sample_rate, (l_40-l_10))
+
+    if T_10 is not None:
+        print(f"\nT10 ist {T_10:.2f} s")
+    else:
+        print("\nT10 konnte nicht berechnet werden")
+
+    if T_20 is not None:
+        print(f"T20 ist {T_20:.2f} s")
+    else:
+        print("T20 konnte nicht berechnet werden")
+
+    if T_30 is not None:
+        print(f"T30 ist {T_30:.2f} s")
+    else:
+        print("T30 konnte nicht berechnet werden")
+
     print("__________________________")
+
     # Deutlichkeitsmaß und Klarheitsmaß berechnen
     C50, C80 = calculate_c50_c80(audio_data, sample_rate)
     print(f"\nC50 ist {C50:.2f} dB")
     print(f"C80 ist {C80:.2f} dB")
+
+    # Geraden-Arrays für die Nachhallzeiten
+    if t_10 is not None:
+        zeit_10 = zeit[t_10:]
+        if T_10 is not None:
+            idx10 = int(T_10 * sample_rate) + 1
+            g10 = np.linspace(schroeder[t_10], -60, idx10 - t_10)
+        if T_20 is not None:
+            idx20 = int(T_20 * sample_rate) + 1
+            g20 = np.linspace(schroeder[t_10], -60, idx20 - t_10)
+        if T_30 is not None:
+            idx30 = int(T_30 * sample_rate) + 1
+            g30 = np.linspace(schroeder[t_10], -60, idx30 - t_10)
 
     # Plots erstellen
     fig, axs = plt.subplots(2, 1, figsize=(10, 8))
@@ -148,10 +204,7 @@ def main():
     axs[0].set_title('Amplitudenfrequenzgang (0-20 kHz)')
     axs[0].set_xlabel('Frequenz (Hz)')
     axs[0].set_ylabel('Amplitude')
-    # Markiere den Impulsstart
-    axs[0].axvline(x=impulse_start_time, color='r', linestyle='--', label='Impulsstart')
-    axs[0].legend()
-
+    
     # Spektrogramm
     NFFT = 1024  # Größe des FFT-Fensters
     Pxx, freqs, bins, im = axs[1].specgram(audio_data, NFFT=NFFT, Fs=sample_rate, noverlap=900)
@@ -166,12 +219,21 @@ def main():
     # Zweite Figure für Schroeder-Plot
     fig2, ax2 = plt.subplots(figsize=(10, 4))
     ax2.plot(zeit, schroeder)
+
+    if T_10 is not None:
+        ax2.plot(zeit_10[:len(g10)], g10, color='darkorange', label='T10 = {:.2f}s'.format(T_10), linestyle=':', linewidth='1.5')
+        ax2.scatter([T_10], [-60], s=40, marker='x', color='darkorange')
+    if T_20 is not None:
+        ax2.plot(zeit_10[:len(g20)], g20, color='fuchsia', label='T20 = {:.2f}s'.format(T_20), linestyle=':', linewidth='1.5')
+        ax2.scatter([T_20], [-60], s=40, marker='x', color='fuchsia')
+    if T_30 is not None:
+        ax2.plot(zeit_10[:len(g30)], g30, color='darkcyan', label='T30 = {:.2f}s'.format(T_30), linestyle=':', linewidth='1.5')
+        ax2.scatter([T_30], [-60], s=40, marker='x', color='darkcyan')
+
     ax2.grid()
     ax2.set_title("Schroeder-Plot")
     ax2.set_xlabel("Zeit in sek.")
     ax2.set_ylabel("Energie in dB")
-    # Markiere den Impulsstart
-    ax2.axvline(x=impulse_start_time, color='r', linestyle='--', label='Impulsstart')
     ax2.legend()
 
     # Layout anpassen und zweite Figure anzeigen
@@ -179,5 +241,4 @@ def main():
     plt.show()
 
 if __name__ == "__main__":
-    # play_sound(file_path)
     main()
