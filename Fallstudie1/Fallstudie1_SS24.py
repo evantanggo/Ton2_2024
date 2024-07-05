@@ -17,7 +17,7 @@ import warnings
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Datei untersuchen (verwenden Sie den relativen Pfad)
-file_path = os.path.join(base_dir, "test_h_von_t_W23.wav")
+file_path = os.path.join(base_dir, "Datei_B.wav")
 #test_h_von_t_W23.wav
 #Datei_B.wav
 
@@ -185,8 +185,8 @@ def main():
     if t_10 is not None:
         zeit_10 = zeit[t_10:]
         if T_10 is not None:
-            idx10 = int(T_10 * sample_rate) + 1
-            g10 = np.linspace(schroeder[t_10], -60, idx10 - t_10)
+            idx10 = int(T_10 * sample_rate) + 1                     # Index zum Zeitpunkt der erreichten Nachhallzeit
+            g10 = np.linspace(schroeder[t_10], -60, idx10 - t_10)   # Zeit-Array für Gerade der Nachhallzeit erstellen
         if T_20 is not None:
             idx20 = int(T_20 * sample_rate) + 1
             g20 = np.linspace(schroeder[t_10], -60, idx20 - t_10)
@@ -195,6 +195,7 @@ def main():
             g30 = np.linspace(schroeder[t_10], -60, idx30 - t_10)
 
     # Plots erstellen
+    
     fig, axs = plt.subplots(2, 1, figsize=(10, 8))
 
     # Amplitudenfrequenzgang
@@ -217,6 +218,7 @@ def main():
     plt.show()
 
     # Zweite Figure für Schroeder-Plot
+    plt.ion()
     fig2, ax2 = plt.subplots(figsize=(10, 4))
     ax2.plot(zeit, schroeder)
 
@@ -238,7 +240,61 @@ def main():
 
     # Layout anpassen und zweite Figure anzeigen
     plt.tight_layout()
+    plt.show(block=False)
+    plt.ioff() 
+
+    # Berechnung der Differenz der jeweiligen Nachhallzeit mit dem Energie-Pegel
+    cut_val = float(input('\nKorrelationsberechnung:'
+                      '\nFließkommazahl des Zeitpunktes, an dem die Energiepegel-Kennlinie '
+                      '\ngerade noch parallel zu den Nachhallzeiten-Geraden verläuft:  '))          
+
+    # Calculate `cut_idx` based on `cut_val`
+    cut_idx = int(cut_val * sample_rate) + 1
+
+    # Calculate differences
+    diff_array = (
+        schroeder[t_10:idx10] - g10,
+        schroeder[t_10:idx20] - g20,
+        schroeder[t_10:idx30] - g30
+    )
+
+    # Truncate to `cut_idx` length
+    diff_array = [d[:cut_idx] for d in diff_array] 
+
+    # Absolute values for integration
+    abs_diff_array = [[abs(val) for val in d] for d in diff_array]
+
+    # Numerical integration to find the "area under the curve"
+    korr_value = [np.sum(d) for d in abs_diff_array]
+
+    # Index of the minimum value
+    korr_idx = np.argmin(korr_value)
+
+
+    # List for output
+    list_str = ["T10", "T20", "T30"]
+    list_float = [round(T_10, 2), round(T_20, 2), round(T_30, 2)] 
+
+    # Dritte Figure des Differenzs von T10, T20 & T30 mit dem Energie-Pegel
+    fig3, ax3 = plt.subplots(figsize=(10, 4))
+
+    ax3.plot(zeit[t_10:cut_idx], abs_diff_array[0][:cut_idx-t_10], color='darkorange', label='L - T10')
+    ax3.plot(zeit[t_10:cut_idx], abs_diff_array[1][:cut_idx-t_10], color='fuchsia', label='L - T20')
+    ax3.plot(zeit[t_10:cut_idx], abs_diff_array[2][:cut_idx-t_10], color='darkcyan', label='L - T30')
+
+    ax3.set_title("Differenz-Kennlinie für T10, T20 & T30")
+    ax3.set_xlabel("Zeit in sek.")
+    ax3.set_ylabel("Differenz in dB")
+    ax3.legend()
+    ax3.grid()
+
+    # Layout anpassen und dritte Figure anzeigen
+    plt.tight_layout()
     plt.show()
+
+    print(f'\nDie beste Näherung ergibt sich für '
+          f'{list_str[korr_idx]} = {list_float[korr_idx]}s.\n')
+
 
 if __name__ == "__main__":
     main()

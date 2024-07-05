@@ -253,9 +253,9 @@ if __name__ == "__main__":
     sprache = import_file(data[2])                      # Import eines Test-Signals mit Sprache
     musik = import_file(data[3])                        # Import eines Test-Signals mit Musik
 
-    info(h_test)                                             # Ausgabe von Informationen zur Impulsantwort
-    waveform_plot(h_test)                                    # Waveform-Darstellung der Impulsantwort
-    fft_plot(h_test)                                         # Amplitudenfrequenzgang der Impulsantwort
-    spektogramm_plot(h_test)                                 # Spektogramm-Darstellung der Impulsantwort
-    schroeder_plot(h_test)                                   # Schroeder-Plot & Berechnungen für Nachhallzeit, C50, C80
+    info(h)                                             # Ausgabe von Informationen zur Impulsantwort
+    waveform_plot(h)                                    # Waveform-Darstellung der Impulsantwort
+    fft_plot(h)                                         # Amplitudenfrequenzgang der Impulsantwort
+    spektogramm_plot(h)                                 # Spektogramm-Darstellung der Impulsantwort
+    schroeder_plot(h)                                   # Schroeder-Plot & Berechnungen für Nachhallzeit, C50, C80
     #convolve(h, musik)                                  # Faltung der Impulsantwort mit dem Musik-Signal
