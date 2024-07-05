@@ -7,7 +7,7 @@ from scipy.io.wavfile import read
 from matplotlib import pyplot as plt
 
 
-impulsantwort_wav = 'TON2 Tom/Datei_B.wav'
+impulsantwort_wav = 'Z_Tom/Datei_C.wav'
 
 # Auslesen und Speichern der Abtastrate in  Fs und der Impulsantwort als Array in impulsantwort aus der WAV-Datei
 Fs, impulsantwort = read(impulsantwort_wav)
