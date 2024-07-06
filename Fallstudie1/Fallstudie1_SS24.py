@@ -148,9 +148,9 @@ def main():
     freq_range = (frequencies >= 0) & (frequencies <= 20000)
     freq_selected = frequencies[freq_range]
     amp_selected = amplitude_spectrum[freq_range]
-
+   
     # Play the panned audio
-    print("\nPlaying audio...")
+    print(f"\nPlaying audio mit Abtastrate von {sample_rate}...")
     sd.play(audio_data, sample_rate)
     sd.wait()  # Wait until the audio is finished playing
     
