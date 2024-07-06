@@ -340,7 +340,7 @@ def main():
         else:
             print("Ungültige Eingabe. Bitte drücke '1' oder '2'.")
 
-    print(f"\nAuralisation mit {file_signal}")
+    print(f"\nPlaying Auralisation mit {file_signal}...\n")
     convolve((sample_rate, audio_data), (sample_rate_signal, audio_data_signal))
 
 if __name__ == "__main__":
