@@ -8,6 +8,7 @@ Evan Tanggo Peter Simamora
 import os
 import sounddevice as sd
 from scipy.io.wavfile import read
+import scipy.signal as consig
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq
@@ -17,7 +18,10 @@ import warnings
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Datei untersuchen (verwenden Sie den relativen Pfad)
-file_path = os.path.join(base_dir, "Datei_B.wav")
+file_impulsantwort = os.path.join(base_dir, "Datei_B.wav")
+file_musik = os.path.join(base_dir, "gitarre.wav")
+file_sprache = os.path.join(base_dir, "sprache.wav")
+
 #test_h_von_t_W23.wav
 #Datei_B.wav
 
@@ -127,10 +131,36 @@ def calculate_c50_c80(audio_data, sample_rate):
 
     return C50, C80
 
+def resample_signal(signal, original_fs, target_fs):
+    num_samples = int(len(signal) * target_fs / original_fs)
+    resampled_signal = consig.resample(signal, num_samples)
+    return resampled_signal
+
+def convolve(signal1, signal2, target_fs=48000):
+    fsa, a = signal1                                    # Import von Signal 1
+    fsb, b = signal2                                    # Import von Signal 2
+
+    # Resampling beider Signale auf die Zielabtastrate
+    if fsa != target_fs:
+        a = resample_signal(a, fsa, target_fs)
+        fsa = target_fs
+    if fsb != target_fs:
+        b = resample_signal(b, fsb, target_fs)
+        fsb = target_fs
+
+    # Faltungsoperation mit Amplitudendämpfung für Wiedergabe
+    y_conv = 0.02 * consig.fftconvolve(a, b)
+    sd.play(y_conv, target_fs)                          # Abspielen des gefalteten Signals
+    sd.wait()
+
+    return None
+
 def main():
-    sample_rate, audio_data = import_data(file_path) # Fs, y
+    sample_rate, audio_data = import_data(file_impulsantwort) # Fs, y
+   
+
     if audio_data is None:
-        return
+        return 
 
     impulse_start = find_impulse_start(audio_data)
     
@@ -241,13 +271,14 @@ def main():
     # Layout anpassen und zweite Figure anzeigen
     plt.tight_layout()
     plt.show(block=False)
-    plt.ioff() 
+     
 
     # Berechnung der Differenz der jeweiligen Nachhallzeit mit dem Energie-Pegel
     cut_val = float(input('\nKorrelationsberechnung:'
                       '\nFließkommazahl des Zeitpunktes, an dem die Energiepegel-Kennlinie '
                       '\ngerade noch parallel zu den Nachhallzeiten-Geraden verläuft:  '))          
 
+    plt.ioff()
     # Calculate `cut_idx` based on `cut_val`
     cut_idx = int(cut_val * sample_rate) + 1
 
@@ -295,6 +326,22 @@ def main():
     print(f'\nDie beste Näherung ergibt sich für '
           f'{list_str[korr_idx]} = {list_float[korr_idx]}s.\n')
 
+     # User input to select either music or speech file
+    while True:
+        choice = input("Für Auralistaion bitte drücke '1' für Musik oder '2' für Sprache: ")
+        if choice == '1':
+            file_signal = os.path.basename(file_musik)
+            sample_rate_signal, audio_data_signal = import_data(file_musik)
+            break
+        elif choice == '2':
+            file_signal = os.path.basename(file_sprache)
+            sample_rate_signal, audio_data_signal = import_data(file_sprache)
+            break
+        else:
+            print("Ungültige Eingabe. Bitte drücke '1' oder '2'.")
+
+    print(f"\nAuralisation mit {file_signal}")
+    convolve((sample_rate, audio_data), (sample_rate_signal, audio_data_signal))
 
 if __name__ == "__main__":
     main()
