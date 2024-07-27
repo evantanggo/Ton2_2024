@@ -22,9 +22,6 @@ file_impulsantwort = os.path.join(base_dir, "Datei_B.wav")
 file_musik = os.path.join(base_dir, "gitarre.wav")
 file_sprache = os.path.join(base_dir, "sprache.wav")
 
-#test_h_von_t_W23.wav
-#Datei_B.wav
-
 def import_data(file_path):
     try:
         # Überprüfe, ob die Datei existiert
