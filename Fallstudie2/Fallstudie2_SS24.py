@@ -11,11 +11,13 @@ import sounddevice as sd
 import tkinter as tk
 from tkinter import ttk
 from scipy.io.wavfile import read
+import scipy.signal as consig
+from scipy.fft import fft, fftfreq
 import warnings
 import time
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
-import_a = os.path.join(base_dir, "gitarre.wav")  # für Aufgabeteil A
+
 spuren = [
     "ton2_4spuren-001.wav", # Schlagzeug
     "ton2_4spuren-002.wav", # Gesang
@@ -23,7 +25,21 @@ spuren = [
     "ton2_4spuren-004.wav"  # Trompete
 ]
 
+brir_files = [
+        "BRIR_E/H12azi_0,0_ele_0,0.wav",
+        "BRIR_E/H12azi_45,0_ele_0,0.wav",
+        "BRIR_E/H12azi_90,0_ele_0,0.wav",
+        "BRIR_E/H12azi_135,0_ele_0,0.wav",
+        "BRIR_E/H12azi_180,0_ele_0,0.wav",
+        "BRIR_E/H12azi_225,0_ele_0,0.wav",
+        "BRIR_E/H12azi_270,0_ele_0,0.wav",
+        "BRIR_E/H12azi_315,0_ele_0,0.wav"
+    ]
+
+
+import_a = os.path.join(base_dir, "gitarre.wav")  # für Aufgabeteil A
 import_b = [os.path.join(base_dir, datei) for datei in spuren]  # für Aufgabeteil B
+brir_files = [os.path.join(base_dir, file) for file in brir_files]
 
 # Funktion zum Importieren der Audiodaten
 def import_data(file_path):
@@ -157,6 +173,48 @@ class Mischpult:
         
         abspielen(mixed_signal, max_sample_rate)
 
+    def mischen_brir(self, brir_files):
+        sample_rate, signals = zip(*[import_data(file) for file in self.spuren])
+        brir_sample_rate, brirs = zip(*[import_data(file) for file in brir_files])
+        
+        if len(set(brir_sample_rate)) != 1:
+            raise ValueError("Alle BRIR-Dateien müssen die gleiche Abtastrate haben.")
+        
+        if brir_sample_rate[0] != sample_rate[0]:
+            raise ValueError("Die Abtastraten der BRIR-Dateien und Audiodateien müssen übereinstimmen.")
+        
+        max_sample_rate = max(sample_rate)
+        signals = list(signals)
+        
+        convoluted_signals_left = []
+        convoluted_signals_right = []
+
+        for signal, brir in zip(signals, brirs):
+            if brir.ndim == 1:
+                # Mono BRIR, auf Stereo ausdehnen
+                brir = np.column_stack((brir, brir))
+            elif brir.ndim != 2 or brir.shape[1] != 2:
+                raise ValueError("BRIR-Dateien müssen Stereo sein.")
+            
+            convoluted_left = consig.fftconvolve(signal, brir[:, 0], mode='full')[:len(signal)]
+            convoluted_right = consig.fftconvolve(signal, brir[:, 1], mode='full')[:len(signal)]
+            convoluted_signals_left.append(convoluted_left)
+            convoluted_signals_right.append(convoluted_right)
+        
+        min_len = min(min(len(l) for l in convoluted_signals_left), min(len(r) for r in convoluted_signals_right))
+        convoluted_signals_left = [l[:min_len] for l in convoluted_signals_left]
+        convoluted_signals_right = [r[:min_len] for r in convoluted_signals_right]
+
+        mixed_signal = np.zeros((min_len, 2))
+        mixed_signal[:, 0] = sum(convoluted_signals_left)
+        mixed_signal[:, 1] = sum(convoluted_signals_right)
+        
+        max_val = np.max(np.abs(mixed_signal))
+        if max_val > 0:
+            mixed_signal = mixed_signal / max_val
+        
+        abspielen(mixed_signal, max_sample_rate)
+
 class PhantomschallquelleGUI:
     def __init__(self):
         self.delay_ms = 0
@@ -230,7 +288,7 @@ if __name__ == "__main__":
 
     # Schlagzeug | Gesang | E-Guitar | Trompete
     # [-0.2, 0.1, -0.4, 0.4]
-    print("------------------------------------------")
+    """print("------------------------------------------")
     print("\nStereomischung mit Laufzeitdifferenzen..")
     time.sleep(2)
     mischpult.mischen_a([-2, 1, -4, 4])  # Beispielwerte für Laufzeitdifferenz in ms
@@ -246,4 +304,8 @@ if __name__ == "__main__":
     print("\nStereomischung mit Laufzeit- und Pegeldifferenzen..")
     mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [7.0, 7.0, 7.0, 7.0])  # Kombination von Laufzeit- und Pegeldifferenz
     time.sleep(2) # 2 Sekunden Pause
+    print("\n------------------------------------------")"""
+
+    print("\nStereomischung mit BRIRs..")
+    mischpult.mischen_brir([brir_files[2], brir_files[2], brir_files[2], brir_files[2]])  # Beispiel BRIR Dateien
     print("\n------------------------------------------")
