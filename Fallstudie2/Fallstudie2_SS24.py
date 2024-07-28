@@ -20,7 +20,7 @@ spuren = [
     "ton2_4spuren-001.wav", # Schlagzeug
     "ton2_4spuren-002.wav", # Gesang
     "ton2_4spuren-003.wav", # E-Guitar
-    "ton2_4spuren-004.wav"  # Trumphete
+    "ton2_4spuren-004.wav"  # Trompete
 ]
 
 import_b = [os.path.join(base_dir, datei) for datei in spuren]  # für Aufgabeteil B
@@ -59,6 +59,8 @@ def abspielen(signal, Fs):
 
 # Funktion zur Anwendung von Laufzeitdifferenz
 def zeitdifferenz(signal, Fs, delay_ms):
+    if delay_ms is None:
+        return np.zeros_like(signal), np.zeros_like(signal)
     t_samples = round(delay_ms / 1000 * Fs)
     if t_samples > 0:
         extra = np.zeros(t_samples, dtype=signal.dtype)
@@ -70,6 +72,8 @@ def zeitdifferenz(signal, Fs, delay_ms):
 
 # Funktion zur Anwendung von Pegeldifferenz
 def pegeldifferenz(signal, pegeldiff_db):
+    if pegeldiff_db is None:
+        return np.zeros_like(signal)
     return signal / (10 ** (pegeldiff_db / 20))
 
 class Mischpult:
@@ -218,21 +222,28 @@ class PhantomschallquelleGUI:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    """gui = PhantomschallquelleGUI()
-    gui.run()"""
+    print("\nGUI von Lokilasation von Phantomschalquelle\n")
+    gui = PhantomschallquelleGUI()
+    gui.run()
 
     mischpult = Mischpult(import_b)
-    print("\n Stereomischung mit Laufzeitdifferenzen..")
-    mischpult.mischen_a([-0.2, 0.1, -0.4, 0.4])  # Beispielwerte für Laufzeitdifferenz in ms
+
+    # Schlagzeug | Gesang | E-Guitar | Trompete
+    # [-0.2, 0.1, -0.4, 0.4]
+    print("------------------------------------------")
+    print("\nStereomischung mit Laufzeitdifferenzen..")
+    time.sleep(2)
+    mischpult.mischen_a([-2, 1, -4, 4])  # Beispielwerte für Laufzeitdifferenz in ms
     time.sleep(2)  # 2 Sekunden Pause
     # E-Guitar und Schlahzeug eher nach link
     # Gesang bisschen nach rechts aber noch mittig
     # Trumphete nach rechts, damit mehr Balance mit der E-Guitar
 
-    """print("\n Stereomischung mit Pegeldifferenzen..")
-    mischpult.mischen_b([4.0, -2.0, 3.0, -1.0])  # Beispielwerte für Pegeldifferenz in dB
+    print("\nStereomischung mit Pegeldifferenzen..")
+    mischpult.mischen_b([2, -1, 4, -4])  # Beispielwerte für Pegeldifferenz in dB
     time.sleep(2)  # 2 Sekunden Pause
 
-    print("\n Stereomischung mit Laufzeit- und Pegeldifferenzen..")
-    mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [-4.0, -4.0, -4.0, -4.0])  # Kombination von Laufzeit- und Pegeldifferenz
-    time.sleep(2) # 2 Sekunden Pause"""
+    print("\nStereomischung mit Laufzeit- und Pegeldifferenzen..")
+    mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [7.0, 7.0, 7.0, 7.0])  # Kombination von Laufzeit- und Pegeldifferenz
+    time.sleep(2) # 2 Sekunden Pause
+    print("\n------------------------------------------")
