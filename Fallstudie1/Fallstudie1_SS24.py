@@ -8,7 +8,7 @@ Evan Tanggo Peter Simamora
 import os
 import sounddevice as sd
 from scipy.io.wavfile import read
-import scipy.signal as consig
+from scipy.signal import resample, fftconvolve
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.fft import fft, fftfreq
@@ -37,6 +37,8 @@ def import_data(file_path):
         if audio_data.ndim == 2:
             left_channel = audio_data[:, 0]
             right_channel = audio_data[:, 1]
+            left_channel = 0.5 * left_channel
+            right_channel = 0.5 * right_channel
             mono_data = (left_channel + right_channel) / 2
         else:
             mono_data = audio_data
@@ -130,7 +132,7 @@ def calculate_c50_c80(audio_data, sample_rate):
 
 def resample_signal(signal, original_fs, target_fs):
     num_samples = int(len(signal) * target_fs / original_fs)
-    resampled_signal = consig.resample(signal, num_samples)
+    resampled_signal = resample(signal, num_samples)
     return resampled_signal
 
 def convolve(signal1, signal2, target_fs=48000):
@@ -140,22 +142,26 @@ def convolve(signal1, signal2, target_fs=48000):
     # Resampling beider Signale auf die Zielabtastrate
     if fsa != target_fs:
         a = resample_signal(a, fsa, target_fs)
-        fsa = target_fs
     if fsb != target_fs:
         b = resample_signal(b, fsb, target_fs)
-        fsb = target_fs
 
-    # Faltungsoperation mit Amplitudendämpfung für Wiedergabe
-    y_conv = 0.02 * consig.fftconvolve(a, b)
-    sd.play(y_conv, target_fs)                          # Abspielen des gefalteten Signals
+    # Faltungsoperation
+    y_conv = fftconvolve(a, b, mode='full')
+
+    # Normalisierung des gefalteten Signals
+    max_amp = np.max(np.abs(y_conv))
+    if max_amp > 0:  # Vermeidung von Division durch Null
+        y_conv = y_conv / max_amp
+
+    # Abspielen des gefalteten Signals
+    sd.play(y_conv, target_fs)
     sd.wait()
 
-    return None
+    return y_conv
 
 def main():
     sample_rate, audio_data = import_data(file_impulsantwort) # Fs, y
-   
-
+    
     if audio_data is None:
         return 
 

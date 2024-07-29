@@ -288,7 +288,7 @@ if __name__ == "__main__":
 
     # Schlagzeug | Gesang | E-Guitar | Trompete
     # [-0.2, 0.1, -0.4, 0.4]
-    """print("------------------------------------------")
+    print("------------------------------------------")
     print("\nStereomischung mit Laufzeitdifferenzen..")
     time.sleep(2)
     mischpult.mischen_a([-2, 1, -4, 4])  # Beispielwerte für Laufzeitdifferenz in ms
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     print("\nStereomischung mit Laufzeit- und Pegeldifferenzen..")
     mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [7.0, 7.0, 7.0, 7.0])  # Kombination von Laufzeit- und Pegeldifferenz
     time.sleep(2) # 2 Sekunden Pause
-    print("\n------------------------------------------")"""
+    print("\n------------------------------------------")
 
     print("\nStereomischung mit BRIRs..")
     mischpult.mischen_brir([brir_files[2], brir_files[2], brir_files[2], brir_files[2]])  # Beispiel BRIR Dateien
