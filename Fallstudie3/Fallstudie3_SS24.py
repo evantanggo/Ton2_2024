@@ -44,6 +44,27 @@ def play_sound(file_path):
     if audio_data is not None:
         sd.play(audio_data, sample_rate, blocking=True)
 
+# Tiefpassfilter mit Rückkopplung
+def tiefpass_filter(x, dt, RC):
+    n = len(x)
+    y = np.zeros(n)
+    alpha = dt / (RC + dt)
+    y[0] = alpha * x[0]
+    for i in range(1, n):
+        y[i] = alpha * x[i] + (1 - alpha) * y[i - 1]
+    return y
+
+
+# Hochpassfilter mit Rückkopplung
+def hochpass_filter(x, dt, RC):
+    n = len(x)
+    y = np.zeros(n)
+    alpha = RC / (RC + dt)
+    y[0] = x[0]
+    for i in range(1, n):
+        y[i] = alpha * (y[i - 1] + x[i] - x[i - 1])
+    return y
+
 # Funktionen zur Bandstop-Filtererstellung
 def db_to_linear(Q_dB):
     # Umrechnung von dB in linearen Gütefaktor
