@@ -10,7 +10,7 @@ from scipy.io.wavfile import read
 from scipy.io.wavfile import write
 import sounddevice as sd
 
-Eingang = 'voice.wav' #Auswahl Sprache "voice.wav" oder Musik "drop.wav"
+Eingang = 'Z_1_Tom/voice.wav' #Auswahl Sprache "voice.wav" oder Musik "drop.wav"
 fgr_HP = 1000       #vorgegebene Grenzfrequenz
 
 fs, x_t = read(Eingang)         #Abtastfrequenz und Signal
