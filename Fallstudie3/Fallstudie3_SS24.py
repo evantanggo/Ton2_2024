@@ -65,6 +65,115 @@ def hochpass_filter(x, dt, RC):
         y[i] = alpha * (y[i - 1] + x[i] - x[i - 1])
     return y
 
+def filter_auf_audio_anwenden(x_t, fs, fgr, filter_typ):
+    delta_T = 1 / fs
+
+    if filter_typ == 'tp':
+        RC = 1 / (2 * np.pi * fgr)
+        y = tiefpass_filter(x_t, delta_T, RC)  # TP 1. Ordnung
+        #y = tiefpass_filter(y, delta_T, RC)  # TP 2. Ordnung
+        title = 'Tiefpass-gefiltertes Audiosignal'
+    elif filter_typ == 'hp':
+        RC = 1 / (2 * np.pi * fgr)
+        y = hochpass_filter(x_t, delta_T, RC)  # HP 1. Ordnung
+        #y = hochpass_filter(y, delta_T, RC)  # HP 2. Ordnung
+        title = 'Hochpass-gefiltertes Audiosignal'
+    else:
+        print("Ungültiger Filtertyp. Bitte 'tp' für Tiefpass oder 'hp' für Hochpass eingeben.")
+        return
+
+    # Audiosignal abspielen
+    sd.play(y, fs)
+    sd.wait()
+
+    # Visualisierung der Audiosignale
+    zeit = np.arange(len(x_t)) / fs
+    plt.figure()
+    plt.subplot(2, 1, 1)
+    plt.plot(zeit, x_t)
+    plt.title('Originales Audiosignal')
+    plt.xlabel('Zeit [s]')
+    plt.ylabel('Amplitude')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(zeit, y)
+    plt.title(title)
+    plt.xlabel('Zeit [s]')
+    plt.ylabel('Amplitude')
+
+    plt.tight_layout()
+    plt.show()
+
+    # Berechnung und Anzeige der Impulsantworten
+    impulsantworten(delta_T, RC, fs, filter_typ)
+
+    # Berechnung und Anzeige der Frequenzantworten
+    plot_frequenzantworten(y, fs, filter_typ)
+
+def impulsantworten(dt, RC, fs, filter_typ):
+    impulse = np.zeros(100)
+    impulse[0] = 1
+
+    if filter_typ == 'tp':
+        y = tiefpass_filter(impulse, dt, RC)
+        #y = tiefpass_filter(y, dt, RC)  # Zweite Ordnung
+        title = 'Impulsantwort - Tiefpassfilter'
+    elif filter_typ == 'hp':
+        y = hochpass_filter(impulse, dt, RC)
+        #y = hochpass_filter(y, dt, RC)  # Zweite Ordnung
+        title = 'Impulsantwort - Hochpassfilter'
+    else:
+        print("Ungültiger Filtertyp.")
+        return
+
+    zeit = np.arange(len(impulse)) * dt
+
+    plt.figure()
+    plt.stem(zeit, y)
+    plt.title(title)
+    plt.xlabel('Zeit [s]')
+    plt.ylabel('Amplitude')
+
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_frequenzantworten(y, fs, filter_typ):
+    NFFT = 1024  # Anzahl der Punkte für die FFT
+    X = np.arange(0, fs / 2, fs / NFFT)
+
+    def frequenzantwort(signal):
+        Sp = np.fft.fft(signal, NFFT) / NFFT
+        Sp_abs = np.abs(Sp)
+        Sp_phase = np.angle(Sp)
+        return Sp_abs[:NFFT // 2] * 2, Sp_phase[:NFFT // 2]
+
+    Y, Phase = frequenzantwort(y)
+
+    if filter_typ == 'tp':
+        title = 'Frequenzantwort - Tiefpassfilter'
+    elif filter_typ == 'hp':
+        title = 'Frequenzantwort - Hochpassfilter'
+    else:
+        print("Ungültiger Filtertyp.")
+        return
+
+    plt.figure()
+    plt.subplot(2, 1, 1)
+    plt.plot(X, Y)
+    plt.title(title)
+    plt.xlabel('Frequenz (Hz)')
+    plt.ylabel('Amplitude')
+    plt.grid()
+    plt.subplot(2, 1, 2)
+    plt.plot(X, Phase)
+    plt.xlabel('Frequenz (Hz)')
+    plt.ylabel('Phase (Radiant)')
+    plt.grid()
+    plt.tight_layout()
+    plt.show()
+
+    
 # Funktionen zur Bandstop-Filtererstellung
 def db_to_linear(Q_dB):
     # Umrechnung von dB in linearen Gütefaktor
@@ -161,19 +270,22 @@ def main():
         return
     
     sos, fl, fh = create_bandstop_filter(fs_noise, fc, Q_dB)
-    print(f"Fl: {fl}, Fh: {fh}")
+    """print(f"Fl: {fl}, Fh: {fh}")
     
     y_bandstop = sosfilt(sos, y_noise)
-    
     plot_bode(sos, fs_noise)
-    
     #sd.play(y_bandstop, fs_noise)
-    #sd.wait()
+    #sd.wait()"""
+
+    # Anzeige der Impulsantwort
+    filter_typ = "tp"
+    filter_auf_audio_anwenden(y_noise, fs_noise, fl, filter_typ)
     
-    y_pingpong = pingpong_delay(y_voice, fs_voice)
+    # Ping Pong Delay
+    """y_pingpong = pingpong_delay(y_voice, fs_voice)
     
     sd.play(y_pingpong, fs_voice)
-    sd.wait()
+    sd.wait()"""
 
 if __name__ == "__main__":
     main()
