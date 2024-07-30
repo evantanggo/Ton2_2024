@@ -168,67 +168,7 @@ def plot_frequenzantworten(y, fs, filter_typ):
     plt.tight_layout()
     plt.show()
 
-def impulsantworten_bs(sos, fs):
-    impulse = np.zeros(100)
-    impulse[0] = 1  # Setze den Impuls an den Anfang
-    y = sosfilt(sos, impulse)
-
-    zeit = np.arange(len(impulse)) / fs  # Zeitbereich ab Null
-
-    plt.figure()
-    plt.stem(zeit, y)
-    plt.title('Impulsantwort - Bandsperre')
-    plt.xlabel('Zeit [s]')
-    plt.ylabel('Amplitude')
-    plt.tight_layout()
-    plt.show()
-
-def plot_frequenzantworten_bs(sos, fs):
-    w, h = sosfreqz(sos, worN=2000, fs=fs)
-
-    # Begrenzung der Frequenzachse auf 2000 Hz
-    max_freq = 2000
-    mask = w <= max_freq
-    w = w[mask]
-    h = h[mask]
-
-    plt.figure()
-    plt.subplot(2, 1, 1)
-    plt.plot(w, 20 * np.log10(np.abs(h)))
-    plt.title('Frequenzantwort - Bandsperre')
-    plt.xlabel('Frequenz (Hz)')
-    plt.ylabel('Amplitude [dB]')
-    plt.grid()
-    
-    plt.subplot(2, 1, 2)
-    plt.plot(w, np.angle(h))
-    plt.xlabel('Frequenz (Hz)')
-    plt.ylabel('Phase (Radiant)')
-    plt.grid()
-    plt.tight_layout()
-    plt.show()
-
-"""def plot_frequenzantworten_bs(sos, fs):
-    w, h = sosfreqz(sos, worN=2000, fs=fs)
-
-    plt.figure()
-    plt.subplot(2, 1, 1)
-    plt.plot(w, 20 * np.log10(np.abs(h)))
-    plt.title('Frequenzantwort - Bandsperre')
-    plt.xlabel('Frequenz (Hz)')
-    plt.ylabel('Amplitude [dB]')
-    plt.grid()
-    
-    plt.subplot(2, 1, 2)
-    plt.plot(w, np.angle(h))
-    plt.xlabel('Frequenz (Hz)')
-    plt.ylabel('Phase (Radiant)')
-    plt.grid()
-    plt.tight_layout()
-    plt.show()"""
-
-
-"""def filter_auf_audio_anwenden(x_t, fs, fgr, filter_typ, Q_dB=-3):
+def filter_auf_audio_anwenden(x_t, fs, fgr, filter_typ, Q_dB=-3):
     delta_T = 1 / fs
 
     if filter_typ == 'tp':
@@ -276,52 +216,7 @@ def plot_frequenzantworten_bs(sos, fs):
         impulsantworten(delta_T, 1 / (2 * np.pi * fgr), fs, filter_typ)
 
     # Berechnung und Anzeige der Frequenzantworten
-    plot_frequenzantworten(y, fs, filter_typ)"""
-
-def filter_auf_audio_anwenden(x_t, fs, fc, filter_typ, Q_dB=None):
-    delta_T = 1 / fs
-
-    if filter_typ == 'tp':
-        RC = 1 / (2 * np.pi * fc)
-        y = tiefpass_filter(x_t, delta_T, RC)  # TP 1. Ordnung
-        title = 'Tiefpass-gefiltertes Audiosignal'
-    elif filter_typ == 'hp':
-        RC = 1 / (2 * np.pi * fc)
-        y = hochpass_filter(x_t, delta_T, RC)  # HP 1. Ordnung
-        title = 'Hochpass-gefiltertes Audiosignal'
-    elif filter_typ == 'bs' and Q_dB is not None:
-        sos, fl, fh = create_bandstop_filter(fs, fc, Q_dB)
-        y = sosfilt(sos, x_t)
-        title = 'Bandsperre-gefiltertes Audiosignal'
-    else:
-        print("Ungültiger Filtertyp. Bitte 'tp' für Tiefpass, 'hp' für Hochpass oder 'bs' für Bandsperre eingeben.")
-        return
-
-    # Audiosignal abspielen
-    sd.play(y, fs)
-    sd.wait()
-
-    # Visualisierung der Audiosignale
-    zeit = np.arange(len(x_t)) / fs
-    plt.figure()
-    plt.subplot(2, 1, 1)
-    plt.plot(zeit, x_t)
-    plt.title('Originales Audiosignal')
-    plt.xlabel('Zeit [s]')
-    plt.ylabel('Amplitude')
-
-    plt.subplot(2, 1, 2)
-    plt.plot(zeit, y)
-    plt.title(title)
-    plt.xlabel('Zeit [s]')
-    plt.ylabel('Amplitude')
-
-    plt.tight_layout()
-    plt.show()
-
-    if filter_typ == 'bs':
-        impulsantworten_bs(sos, fs)
-        plot_frequenzantworten_bs(sos, fs)
+    plot_frequenzantworten(y, fs, filter_typ)
 
 # Funktion für den PingPong-Delay
 def pingpong_delay(x_t, fs, delay_ms=500):
@@ -380,7 +275,8 @@ def main():
         return
 
     # Anzeige der Impulsantwort
-    filter_auf_audio_anwenden(y_noise, fs_noise, fc, 'bs', Q_dB)    
+    filter_auf_audio_anwenden(y_noise, fs_noise, fc, 'hp', Q_dB)
+    
     # Ping Pong Delay
     #y_pingpong = pingpong_delay(y_voice, fs_voice)
     #sd.play(y_pingpong, fs_voice)

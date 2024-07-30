@@ -1,10 +1,3 @@
-"""
-Ton2 SS24, Fallstudie
-Praxisproblem 3
-Evan Tanggo Peter Simamora
-2332397
-"""
-
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -67,7 +60,7 @@ def high_pass_filter(signal, dt, RC):
     alpha = RC / (RC + dt)
     filtered_signal[0] = signal[0]
     for i in range(1, n):
-        filtered_signal[i] = alpha * (filtered_signal[i - 1] + (signal[i] - signal[i - 1]))
+        filtered_signal[i] = alpha * (filtered_signal[i - 1] + signal[i] - signal[i - 1])
     return filtered_signal
 
 def convert_db_to_linear(Q_dB):
@@ -121,12 +114,14 @@ def plot_impulse_response(dt, RC, fs, filter_type, sos=None):
     time = np.arange(len(impulse)) * dt
 
     plt.figure()
-    plt.stem(time, response)
+    plt.stem(time, response, basefmt=" ")
     plt.title(title)
     plt.xlabel('Zeit [s]')
     plt.ylabel('Amplitude')
     plt.tight_layout()
     plt.show()
+
+
 
 def plot_frequency_response(signal, fs, filter_type):
     NFFT = 1024
@@ -173,7 +168,7 @@ def plot_impulse_response_bs(sos, fs):
     time = np.arange(len(impulse)) / fs
 
     plt.figure()
-    plt.stem(time, response)
+    plt.stem(time, response, basefmt=" ", use_line_collection=True)
     plt.title('Impulsantwort - Bandsperre')
     plt.xlabel('Zeit [s]')
     plt.ylabel('Amplitude')
@@ -369,7 +364,6 @@ def main():
         apply_filter_to_audio_onlyplay(voice_data, fs_voice, fc, 'bs', Q_dB)
     elif effekt_abfrage == "n":
         print("\nAufgabe übersprungen")
-
+        
 if __name__ == "__main__":
     main()
-
