@@ -101,15 +101,17 @@ def plot_bode_diagram(sos, fs):
     plt.grid()
     plt.show()
 
-def plot_impulse_response(dt, RC, fs, filter_type, sos=None):
+def plot_impulse_response(dt, RC, filter_type, sos=None):
     impulse = np.zeros(100)
-    impulse[0] = 1
+    impulse_a = np.zeros(100)
+    impulse[0] = 1 # mit Dirac für die Impulsantwort
+    impulse_a[50] = 1
 
     if filter_type == 'tp':
         response = low_pass_filter(impulse, dt, RC)
         title = 'Impulsantwort - Tiefpassfilter'
     elif filter_type == 'hp':
-        response = high_pass_filter(impulse, dt, RC)
+        response = high_pass_filter(impulse_a, dt, RC)
         title = 'Impulsantwort - Hochpassfilter'
     elif filter_type == 'bs' and sos is not None:
         response = sosfilt(sos, impulse)
@@ -226,19 +228,21 @@ def apply_filter_to_audio_onlyplay(signal, fs, fc, filter_type, Q_dB=None):
     sd.play(filtered_signal, fs)
     sd.wait()
 
-def apply_filter_to_audio(signal, fs, fc, filter_type, Q_dB=None):
+def apply_filter_to_audio(signal, fs, fgr, filter_type, Q_dB=None):
     dt = 1 / fs
 
     if filter_type == 'tp':
-        RC = 1 / (2 * np.pi * fc)
+        RC = 1 / (2 * np.pi * fgr)
         filtered_signal = low_pass_filter(signal, dt, RC)
         title = 'Tiefpass-gefiltertes Audiosignal'
     elif filter_type == 'hp':
-        RC = 1 / (2 * np.pi * fc)
+        RC = 1 / (2 * np.pi * fgr)
+        alpha_HP = 1 / (1 + fgr * 2 * np.pi * dt)
+
         filtered_signal = high_pass_filter(signal, dt, RC)
         title = 'Hochpass-gefiltertes Audiosignal'
     elif filter_type == 'bs' and Q_dB is not None:
-        sos, fl, fh = design_bandstop_filter(fs, fc, Q_dB)
+        sos, fl, fh = design_bandstop_filter(fs, fgr, Q_dB)
         filtered_signal = sosfilt(sos, signal)
         title = 'Bandsperre-gefiltertes Audiosignal'
     else:
@@ -268,7 +272,7 @@ def apply_filter_to_audio(signal, fs, fc, filter_type, Q_dB=None):
         plot_impulse_response_bs(sos, fs)
         plot_frequency_response_bs(sos, fs)
     else:
-        plot_impulse_response(dt, RC, fs, filter_type)
+        plot_impulse_response(dt, RC, filter_type)
         plot_frequency_response(filtered_signal, fs, filter_type)
 
 
@@ -309,18 +313,9 @@ def pingpong_effect(signal, fs, delay_ms=500):
     return stereo_output
 
 def main():
-    print("\nFILTER AUF NOISESIGNAL")
-    # Benutzerabfrage nach dem Filtertyp
-    filter_type = input("\nWelchen Filter möchten Sie anwenden? 'tp' für Tiefpass, 'hp' für Hochpass, 'bs' für Bandsperre: ").strip().lower()
-    
-    # Filtertyp überprüfen und anpassen
-    if filter_type not in ['tp', 'hp', 'bs']:
-        print("Unbekannter Filtertyp. Bitte 'tp', 'hp' oder 'bs' verwenden.")
-        return
-    
     # Parameter für den Filter
-    fc = 700
-    Q_dB = -3
+    fc = 700    # Grenzfrequenz für Bandsperre
+    Q_dB = -3   # Gütefaktor in dB
     
     # Audiodateien laden
     fs_noise, noise_data = import_audio(noise_file)
@@ -329,11 +324,24 @@ def main():
     if noise_data is None or voice_data is None:
         return
     
+    # fl ist die untere Grenzfrequenz, fh ist die obere Grenzfrequenz
+    sos, fl, fh = design_bandstop_filter(fs_noise, fc, Q_dB)
+    print(fl)
+    print(fh)
+    
+    print("\nFILTER AUF NOISESIGNAL")
+    # Benutzerabfrage nach dem Filtertyp
+    filter_type = input("\nWelchen Filter möchten Sie anwenden? 'tp' für Tiefpass, 'hp' für Hochpass, 'bs' für Bandsperre: ").strip().lower()
+    
+    # Filtertyp überprüfen und anpassen
+    if filter_type not in ['tp', 'hp', 'bs']:
+        print("Unbekannter Filtertyp. Bitte 'tp', 'hp' oder 'bs' verwenden.")
+        return
     # Filter anwenden basierend auf Benutzerwahl
     if filter_type == 'tp':
-        apply_filter_to_audio(noise_data, fs_noise, fc, 'tp')
+        apply_filter_to_audio(noise_data, fs_noise, fl, 'tp')
     elif filter_type == 'hp':
-        apply_filter_to_audio(noise_data, fs_noise, fc, 'hp')
+        apply_filter_to_audio(noise_data, fs_noise, fh, 'hp')
     elif filter_type == 'bs':
         apply_filter_to_audio(noise_data, fs_noise, fc, 'bs', Q_dB)
     
@@ -356,12 +364,12 @@ def main():
         print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
         play_audio(voice_file)
         print("\nOriginaldatei mit Effekt wird abgespielt..")
-        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fc, 'tp')
+        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fl, 'tp')
     elif effekt_abfrage == 'hp':
         print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
         play_audio(voice_file)
         print("\nOriginaldatei mit Effekt wird abgespielt..")
-        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fc, 'hp')
+        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fh, 'hp')
     elif effekt_abfrage == 'bs':
         print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
         play_audio(voice_file)

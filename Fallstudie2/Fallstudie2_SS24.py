@@ -280,32 +280,32 @@ class PhantomschallquelleGUI:
         self.root.mainloop()
 
 if __name__ == "__main__":
-    print("\nGUI von Lokilasation von Phantomschalquelle\n")
+    """print("\nGUI von Lokilasation von Phantomschalquelle\n")
     gui = PhantomschallquelleGUI()
-    gui.run()
+    gui.run()"""
 
     mischpult = Mischpult(import_b)
 
     # Schlagzeug | Gesang | E-Guitar | Trompete
     # [-0.2, 0.1, -0.4, 0.4]
-    print("------------------------------------------")
+    """print("------------------------------------------")
     print("\nStereomischung mit Laufzeitdifferenzen..")
     time.sleep(2)
     mischpult.mischen_a([-2, 1, -4, 4])  # Beispielwerte für Laufzeitdifferenz in ms
     time.sleep(2)  # 2 Sekunden Pause
-    # E-Guitar und Schlahzeug eher nach link
+    # E-Guitar und Schlahzeug eher nach links
     # Gesang bisschen nach rechts aber noch mittig
     # Trumphete nach rechts, damit mehr Balance mit der E-Guitar
 
     print("\nStereomischung mit Pegeldifferenzen..")
     mischpult.mischen_b([2, -1, 4, -4])  # Beispielwerte für Pegeldifferenz in dB
-    time.sleep(2)  # 2 Sekunden Pause
+    time.sleep(2)  # 2 Sekunden Pause"""
 
     print("\nStereomischung mit Laufzeit- und Pegeldifferenzen..")
-    mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [7.0, 7.0, 7.0, 7.0])  # Kombination von Laufzeit- und Pegeldifferenz
+    mischpult.mischen_c([2.0, 2.0, 2.0, 2.0], [5.0, 5.0, 5.0, 5.0])  # Kombination von Laufzeit- und Pegeldifferenz
     time.sleep(2) # 2 Sekunden Pause
     print("\n------------------------------------------")
 
     print("\nStereomischung mit BRIRs..")
-    mischpult.mischen_brir([brir_files[2], brir_files[2], brir_files[2], brir_files[2]])  # Beispiel BRIR Dateien
+    mischpult.mischen_brir([brir_files[1], brir_files[0], brir_files[2], brir_files[6]])  # Beispiel BRIR Dateien
     print("\n------------------------------------------")
