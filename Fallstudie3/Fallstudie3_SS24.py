@@ -20,6 +20,7 @@ base_dir = os.path.dirname(os.path.abspath(__file__))
 # Dateipfade festlegen
 noise_file = os.path.join(base_dir, "pinknoise.wav")
 voice_file = os.path.join(base_dir, "sprache.wav")
+music_file = os.path.join(base_dir, "gitarre.wav")
 
 def import_audio(file_path):
     try:
@@ -63,12 +64,13 @@ def low_pass_filter(signal, dt, RC):
 
 def high_pass_filter(signal, dt, RC):
     n = len(signal)
-    filtered_signal = np.zeros(n)
+    #filtered_signal = np.zeros(n)
     alpha = RC / (RC + dt)
-    filtered_signal[0] = signal[0]
+    filtered_signal = np.zeros_like(signal)
     for i in range(1, n):
         filtered_signal[i] = alpha * (filtered_signal[i - 1] + (signal[i] - signal[i - 1]))
     return filtered_signal
+
 
 def convert_db_to_linear(Q_dB):
     return 10**(Q_dB / 10)
@@ -91,27 +93,17 @@ def design_bandstop_filter(fs, fc, Q_dB):
     sos = butter(N=2, Wn=[low, high], btype='bandstop', output='sos')
     return sos, fl, fh
 
-def plot_bode_diagram(sos, fs):
-    w, h = sosfreqz(sos, worN=2000, fs=fs)
-    plt.figure()
-    plt.semilogx(w, 20 * np.log10(np.abs(h)), label='Amplitude')
-    plt.title('Bode-Diagramm des Bandstop-Filters')
-    plt.xlabel('Frequenz [Hz]')
-    plt.ylabel('Amplitude [dB]')
-    plt.grid()
-    plt.show()
-
 def plot_impulse_response(dt, RC, filter_type, sos=None):
-    impulse = np.zeros(100)
-    impulse_a = np.zeros(100)
+    n = 100
+    impulse = np.zeros(n)
+    impulse_a = np.zeros(n)
     impulse[0] = 1 # mit Dirac für die Impulsantwort
-    impulse_a[50] = 1
 
     if filter_type == 'tp':
         response = low_pass_filter(impulse, dt, RC)
         title = 'Impulsantwort - Tiefpassfilter'
     elif filter_type == 'hp':
-        response = high_pass_filter(impulse_a, dt, RC)
+        response = high_pass_filter(impulse, dt, RC)
         title = 'Impulsantwort - Hochpassfilter'
     elif filter_type == 'bs' and sos is not None:
         response = sosfilt(sos, impulse)
@@ -237,8 +229,6 @@ def apply_filter_to_audio(signal, fs, fgr, filter_type, Q_dB=None):
         title = 'Tiefpass-gefiltertes Audiosignal'
     elif filter_type == 'hp':
         RC = 1 / (2 * np.pi * fgr)
-        alpha_HP = 1 / (1 + fgr * 2 * np.pi * dt)
-
         filtered_signal = high_pass_filter(signal, dt, RC)
         title = 'Hochpass-gefiltertes Audiosignal'
     elif filter_type == 'bs' and Q_dB is not None:
@@ -320,6 +310,7 @@ def main():
     # Audiodateien laden
     fs_noise, noise_data = import_audio(noise_file)
     fs_voice, voice_data = import_audio(voice_file)
+    fs_music, music_data = import_audio(music_file)
     
     if noise_data is None or voice_data is None:
         return
@@ -328,7 +319,7 @@ def main():
     sos, fl, fh = design_bandstop_filter(fs_noise, fc, Q_dB)
     print(fl)
     print(fh)
-    
+
     print("\nFILTER AUF NOISESIGNAL")
     # Benutzerabfrage nach dem Filtertyp
     filter_type = input("\nWelchen Filter möchten Sie anwenden? 'tp' für Tiefpass, 'hp' für Hochpass, 'bs' für Bandsperre: ").strip().lower()
@@ -350,32 +341,49 @@ def main():
     delay_abfrage = input("\nMöchten Sie den Ping Pong Effekt haben? [j/n] : ").strip().lower()
 
     if delay_abfrage == "j":
-        processed_voice = pingpong_effect(voice_data, fs_voice)
-        time.sleep(1)
-        sd.play(processed_voice, fs_voice)
-        sd.wait()
-    elif delay_abfrage == "n":
-        print("\nAufgabe übersprungen")
-    
-    #Effektanwendung auf Sprachsignal
-    effekt_abfrage = input("\nMöchten Sie Tiefpass/Hochpass/Bandsperre auf das Sprachsignal\nTippen Sie [tp/hp/bs], wenn nicht tippen Sie [n]: ").strip().lower()
+        signal = input("\nSprache oder Musik? : ").strip().lower()
+        if signal == "sprache":
+            processed_delay = pingpong_effect(voice_data, fs_voice)
+            time.sleep(1)
+            sd.play(processed_delay, fs_voice)
+            sd.wait()
 
-    if effekt_abfrage == 'tp':
-        print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
-        play_audio(voice_file)
-        print("\nOriginaldatei mit Effekt wird abgespielt..")
-        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fl, 'tp')
-    elif effekt_abfrage == 'hp':
-        print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
-        play_audio(voice_file)
-        print("\nOriginaldatei mit Effekt wird abgespielt..")
-        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fh, 'hp')
-    elif effekt_abfrage == 'bs':
-        print("\nOriginaldatei wird abgespielt (zum Vergleichen)..")
-        play_audio(voice_file)
-        print("\nOriginaldatei mit Effekt wird abgespielt..")
-        apply_filter_to_audio_onlyplay(voice_data, fs_voice, fc, 'bs', Q_dB)
-    elif effekt_abfrage == "n":
+            effekt_abfrage = input("\nMöchten Sie Tiefpass/Hochpass/Bandsperre auf das Signal\nTippen Sie [tp/hp/bs], wenn nicht tippen Sie [n]: ").strip().lower()
+
+            if effekt_abfrage == 'tp':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(voice_data, fs_voice, fl, 'tp')
+            elif effekt_abfrage == 'hp':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(voice_data, fs_voice, fh, 'hp')
+            elif effekt_abfrage == 'bs':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(voice_data, fs_voice, fc, 'bs', Q_dB)
+            elif effekt_abfrage == "n":
+                print("\nAufgabe übersprungen")
+
+        elif signal == "musik":
+            processed_delay = pingpong_effect(music_data, fs_music)
+            time.sleep(1)
+            sd.play(processed_delay, fs_music)
+            sd.wait()
+
+            effekt_abfrage = input("\nMöchten Sie Tiefpass/Hochpass/Bandsperre auf das Signal\nTippen Sie [tp/hp/bs], wenn nicht tippen Sie [n]: ").strip().lower()
+
+            if effekt_abfrage == 'tp':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(music_data, fs_music, fl, 'tp')
+            elif effekt_abfrage == 'hp':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(music_data, fs_music, fh, 'hp')
+            elif effekt_abfrage == 'bs':
+                print("\nOriginaldatei mit Effekt wird abgespielt..")
+                apply_filter_to_audio_onlyplay(music_data, fs_music, fc, 'bs', Q_dB)
+            elif effekt_abfrage == "n":
+                print("\nAufgabe übersprungen")
+        else:
+            print("Ungültige Eingabe. Bitte geben Sie 'Sprache' oder 'Musik' ein.")
+    elif delay_abfrage == "n":
         print("\nAufgabe übersprungen")
 
 if __name__ == "__main__":
