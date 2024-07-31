@@ -164,7 +164,7 @@ def convolve(signal1, signal2, target_fs=48000):
     return y_conv
 
 def main():
-    sample_rate, audio_data = import_data(file_impulsantwort) # Fs, y
+    sample_rate, audio_data = import_data(file_impulsantwort)  # Fs, y
     
     if audio_data is None:
         return 
@@ -255,7 +255,6 @@ def main():
     plt.show()
 
     # Zweite Figure für Schroeder-Plot
-    plt.ion()
     fig2, ax2 = plt.subplots(figsize=(10, 4))
     ax2.plot(zeit, schroeder)
 
@@ -277,15 +276,13 @@ def main():
 
     # Layout anpassen und zweite Figure anzeigen
     plt.tight_layout()
-    plt.show(block=False)
-     
+    plt.show()
 
     # Berechnung der Differenz der jeweiligen Nachhallzeit mit dem Energie-Pegel
     cut_val = float(input('\nKorrelationsberechnung:'
                       '\nFließkommazahl des Zeitpunktes, an dem die Energiepegel-Kennlinie '
                       '\ngerade noch parallel zu den Nachhallzeiten-Geraden verläuft:  '))          
 
-    plt.ioff()
     # Calculate `cut_idx` based on `cut_val`
     cut_idx = int(cut_val * sample_rate) + 1
 
@@ -333,9 +330,9 @@ def main():
     print(f'\nDie beste Näherung ergibt sich für '
           f'{list_str[korr_idx]} = {list_float[korr_idx]}s.\n')
 
-     # User input to select either music or speech file
+    # User input to select either music or speech file
     while True:
-        choice = input("Für Auralistaion bitte drücke '1' für Musik oder '2' für Sprache: ")
+        choice = input("Für Auralisation bitte drücke '1' für Musik oder '2' für Sprache: ")
         if choice == '1':
             file_signal = os.path.basename(file_musik)
             sample_rate_signal, audio_data_signal = import_data(file_musik)

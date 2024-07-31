@@ -364,8 +364,6 @@ def main():
     
     # fl ist die untere Grenzfrequenz, fh ist die obere Grenzfrequenz
     sos, fl, fh = design_bandstop_filter(fs_noise, fc, Q_dB)
-    print(fl)
-    print(fh)
 
     print("\nFILTER AUF NOISESIGNAL")
     # Benutzerabfrage nach dem Filtertyp
