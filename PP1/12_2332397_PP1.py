@@ -34,12 +34,15 @@ def import_data(file_path):
             sample_rate, audio_data = read(file_path)
         
         # Datei in Mono umwandeln, wenn Stereo
-        if audio_data.ndim == 2:
-            left_channel = audio_data[:, 0]
-            right_channel = audio_data[:, 1]
-            left_channel = 0.5 * left_channel
-            right_channel = 0.5 * right_channel
+        if audio_data.ndim == 2:  # Überprüfe, ob das Audiosignal Stereo ist (zwei Kanäle)
+            left_channel = audio_data[:, 0]  # Extrahiere den linken Kanal
+            right_channel = audio_data[:, 1]  # Extrahiere den rechten Kanal
+            left_channel = 0.5 * left_channel  # Skaliere die Amplitude des linken Kanals um 50%
+            right_channel = 0.5 * right_channel  # Skaliere die Amplitude des rechten Kanals um 50%
+            
+            # Kombiniere die skalierten Kanäle zu einem Monosignal, indem die Mittelwerte der Kanäle gebildet werden
             mono_data = (left_channel + right_channel) / 2
+
         else:
             mono_data = audio_data
         
@@ -79,7 +82,7 @@ def schroeder_plot(audio_data, sample_rate):
     cumulative_energy = np.cumsum(audio_data[::-1] ** 2)[::-1]   # Berechne die kumulierte Energie rückwärts (invertiere das Signal, summiere dann kumulativ und invertiere erneut)
     schroeder = 10 * np.log10(cumulative_energy / energy)        # Berechne den Schroeder-Plot (in dB) als 10 * Logarithmus der kumulierten Energie normiert auf die Gesamtenergie
     zeit = np.arange(len(audio_data)) / sample_rate              # Erzeuge ein Zeit-Array, das die Zeitpunkte der Samples enthält, normiert auf die Sample-Rate
-    
+
     # Berechnung der Nachhallzeiten
     try:
         t_10 = np.where(schroeder <= -10)[0][0]

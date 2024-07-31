@@ -52,11 +52,13 @@ def import_data(file_path):
             warnings.simplefilter("ignore")
             sample_rate, audio_data = read(file_path)
         
-        if audio_data.ndim == 2:
-            left_channel = audio_data[:, 0]
-            right_channel = audio_data[:, 1]
-            left_channel = 0.5 * left_channel
-            right_channel = 0.5 * right_channel
+        if audio_data.ndim == 2:  # Überprüfe, ob das Audiosignal Stereo ist (zwei Kanäle)
+            left_channel = audio_data[:, 0]  # Extrahiere den linken Kanal
+            right_channel = audio_data[:, 1]  # Extrahiere den rechten Kanal
+            left_channel = 0.5 * left_channel  # Skaliere die Amplitude des linken Kanals um 50%
+            right_channel = 0.5 * right_channel  # Skaliere die Amplitude des rechten Kanals um 50%
+            
+            # Kombiniere die skalierten Kanäle zu einem Monosignal, indem die Mittelwerte der Kanäle gebildet werden
             mono_data = (left_channel + right_channel) / 2
         else:
             mono_data = audio_data
