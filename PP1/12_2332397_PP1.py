@@ -52,7 +52,8 @@ def import_data(file_path):
         print(f"Fehler beim Importieren der Daten aus {file_path}: {str(e)}")
         return None, None
 
-def find_impulse_start(audio_data, threshold=0.01):
+# Threshold nutzen, um eine Schwelle festzulegen
+def find_impulse_start(audio_data, threshold=0.01): 
     for i, sample in enumerate(audio_data):
         if abs(sample) > threshold:
             return i
@@ -74,11 +75,11 @@ def calculate_fft(signal, sample_rate):
     return frequencies, fft_values, amplitude_spectrum
 
 def schroeder_plot(audio_data, sample_rate):
-    energy = np.sum(audio_data ** 2)  # Total energy of the signal
-    cumulative_energy = np.cumsum(audio_data[::-1] ** 2)[::-1]
-    schroeder = 10 * np.log10(cumulative_energy / energy)
-    zeit = np.arange(len(audio_data)) / sample_rate
-
+    energy = np.sum(audio_data ** 2)                             # Total energy of the signal
+    cumulative_energy = np.cumsum(audio_data[::-1] ** 2)[::-1]   # Berechne die kumulierte Energie rückwärts (invertiere das Signal, summiere dann kumulativ und invertiere erneut)
+    schroeder = 10 * np.log10(cumulative_energy / energy)        # Berechne den Schroeder-Plot (in dB) als 10 * Logarithmus der kumulierten Energie normiert auf die Gesamtenergie
+    zeit = np.arange(len(audio_data)) / sample_rate              # Erzeuge ein Zeit-Array, das die Zeitpunkte der Samples enthält, normiert auf die Sample-Rate
+    
     # Berechnung der Nachhallzeiten
     try:
         t_10 = np.where(schroeder <= -10)[0][0]

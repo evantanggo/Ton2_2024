@@ -16,6 +16,7 @@ from scipy.fft import fft, fftfreq
 import warnings
 import time
 
+# Basisverzeichnis, in dem sich das Skript befindet
 base_dir = os.path.dirname(os.path.abspath(__file__))
 
 spuren = [
@@ -39,7 +40,7 @@ brir_files = [
 
 import_a = os.path.join(base_dir, "gitarre.wav")  # für Aufgabeteil A
 import_b = [os.path.join(base_dir, datei) for datei in spuren]  # für Aufgabeteil B
-brir_files = [os.path.join(base_dir, file) for file in brir_files]
+brir_files = [os.path.join(base_dir, file) for file in brir_files] # BRIRs
 
 # Funktion zum Importieren der Audiodaten
 def import_data(file_path):
@@ -94,92 +95,111 @@ def pegeldifferenz(signal, pegeldiff_db):
 
 class Mischpult:
     def __init__(self, spuren):
-        self.spuren = spuren
+        self.spuren = spuren # Initialisiere die Spuren (Dateipfade der Audiodateien)
     
     def mischen_a(self, delay_ms_list):
+        # Importiere die Audiodaten und ihre Abtastraten
         sample_rate, signals = zip(*[import_data(file) for file in self.spuren])
         max_sample_rate = max(sample_rate)
         signals = list(signals)
         
         left_channels, right_channels = [], []
         for signal, delay_ms in zip(signals, delay_ms_list):
+            # Erzeuge die linke und rechte Kanäle unter Berücksichtigung der Zeitdifferenz
             left, right = zeitdifferenz(signal, max_sample_rate, delay_ms)
             left_channels.append(left)
             right_channels.append(right)
         
+        # Bestimme die minimale Länge der Kanäle, um sie auf dieselbe Länge zu bringen
         min_len = min(min(len(l) for l in left_channels), min(len(r) for r in right_channels))
         left_channels = [l[:min_len] for l in left_channels]
         right_channels = [r[:min_len] for r in right_channels]
 
+        # Mische die Kanäle zusammen
         mixed_signal = np.zeros((min_len, 2))
         mixed_signal[:, 0] = sum(left_channels)
         mixed_signal[:, 1] = sum(right_channels)
         
+        # Normalisiere das gemischte Signal, um Übersteuerungen zu vermeiden
         max_val = np.max(np.abs(mixed_signal))
         if max_val > 0:
             mixed_signal = mixed_signal / max_val
         
+        # Spiele das gemischte Signal ab
         abspielen(mixed_signal, max_sample_rate)
 
     def mischen_b(self, pegeldiff_db_list):
+        # Importiere die Audiodaten und ihre Abtastraten
         sample_rate, signals = zip(*[import_data(file) for file in self.spuren])
-        max_sample_rate = max(sample_rate)
+        max_sample_rate = max(sample_rate) # Bestimme die höchste Abtastrate
         signals = list(signals)
         
         left_channels, right_channels = [], []
         for signal, pegeldiff_db in zip(signals, pegeldiff_db_list):
+            # Erzeuge die linke und rechte Kanäle unter Berücksichtigung der Pegeldifferenz
             left = signal
             right = pegeldifferenz(signal, pegeldiff_db)
             left_channels.append(left)
             right_channels.append(right)
         
+        # Bestimme die minimale Länge der Kanäle, um sie auf dieselbe Länge zu bringen
         min_len = min(min(len(l) for l in left_channels), min(len(r) for r in right_channels))
         left_channels = [l[:min_len] for l in left_channels]
         right_channels = [r[:min_len] for r in right_channels]
 
+        # Mische die Kanäle zusammen
         mixed_signal = np.zeros((min_len, 2))
         mixed_signal[:, 0] = sum(left_channels)
         mixed_signal[:, 1] = sum(right_channels)
         
+        # Normalisiere das gemischte Signal, um Übersteuerungen zu vermeiden
         max_val = np.max(np.abs(mixed_signal))
         if max_val > 0:
             mixed_signal = mixed_signal / max_val
         
-        abspielen(mixed_signal, max_sample_rate)
+        abspielen(mixed_signal, max_sample_rate)  # Spiele das gemischte Signal ab
 
     def mischen_c(self, delay_ms_list, pegeldiff_db_list):
+        # Importiere die Audiodaten und ihre Abtastraten
         sample_rate, signals = zip(*[import_data(file) for file in self.spuren])
         max_sample_rate = max(sample_rate)
         signals = list(signals)
         
         left_channels, right_channels = [], []
         for signal, delay_ms, pegeldiff_db in zip(signals, delay_ms_list, pegeldiff_db_list):
+            # Erzeuge die linke und rechte Kanäle unter Berücksichtigung der Zeitdifferenz und Pegeldifferenz
             left, right = zeitdifferenz(signal, max_sample_rate, delay_ms)
             right = pegeldifferenz(right, pegeldiff_db)
             left_channels.append(left)
             right_channels.append(right)
         
+        # Bestimme die minimale Länge der Kanäle, um sie auf dieselbe Länge zu bringen
         min_len = min(min(len(l) for l in left_channels), min(len(r) for r in right_channels))
         left_channels = [l[:min_len] for l in left_channels]
         right_channels = [r[:min_len] for r in right_channels]
 
+        # Mische die Kanäle zusammen
         mixed_signal = np.zeros((min_len, 2))
         mixed_signal[:, 0] = sum(left_channels)
         mixed_signal[:, 1] = sum(right_channels)
         
+        # Normalisiere das gemischte Signal, um Übersteuerungen zu vermeiden
         max_val = np.max(np.abs(mixed_signal))
         if max_val > 0:
             mixed_signal = mixed_signal / max_val
         
-        abspielen(mixed_signal, max_sample_rate)
+        abspielen(mixed_signal, max_sample_rate) # Spiele das gemischte Signal ab
 
     def mischen_brir(self, brir_files):
+        # Importiere die Audiodaten und ihre Abtastraten
         sample_rate, signals = zip(*[import_data(file) for file in self.spuren])
         brir_sample_rate, brirs = zip(*[import_data(file) for file in brir_files])
         
+        # Überprüfe, ob alle BRIR-Dateien die gleiche Abtastrate haben
         if len(set(brir_sample_rate)) != 1:
             raise ValueError("Alle BRIR-Dateien müssen die gleiche Abtastrate haben.")
         
+        # Überprüfe, ob die Abtastraten der BRIR-Dateien mit denen der Audiodateien übereinstimmen
         if brir_sample_rate[0] != sample_rate[0]:
             raise ValueError("Die Abtastraten der BRIR-Dateien und Audiodateien müssen übereinstimmen.")
         
@@ -196,65 +216,80 @@ class Mischpult:
             elif brir.ndim != 2 or brir.shape[1] != 2:
                 raise ValueError("BRIR-Dateien müssen Stereo sein.")
             
+            # Führe die Faltung des Signals mit den BRIR-Kanälen durch
             convoluted_left = consig.fftconvolve(signal, brir[:, 0], mode='full')[:len(signal)]
             convoluted_right = consig.fftconvolve(signal, brir[:, 1], mode='full')[:len(signal)]
             convoluted_signals_left.append(convoluted_left)
             convoluted_signals_right.append(convoluted_right)
         
+        # Bestimme die minimale Länge der gefalteten Signale, um sie auf dieselbe Länge zu bringen
         min_len = min(min(len(l) for l in convoluted_signals_left), min(len(r) for r in convoluted_signals_right))
         convoluted_signals_left = [l[:min_len] for l in convoluted_signals_left]
         convoluted_signals_right = [r[:min_len] for r in convoluted_signals_right]
 
+        # Mische die gefalteten Signale zusammen
         mixed_signal = np.zeros((min_len, 2))
         mixed_signal[:, 0] = sum(convoluted_signals_left)
         mixed_signal[:, 1] = sum(convoluted_signals_right)
-        
+
+        # Normalisiere das gemischte Signal, um Übersteuerungen zu vermeiden
         max_val = np.max(np.abs(mixed_signal))
         if max_val > 0:
             mixed_signal = mixed_signal / max_val
         
-        abspielen(mixed_signal, max_sample_rate)
+        abspielen(mixed_signal, max_sample_rate) # Spiele das gemischte Signal ab
 
 class PhantomschallquelleGUI:
     def __init__(self):
-        self.delay_ms = 0
-        self.pegeldiff_db = 0
+        self.delay_ms = 0 # Initialisiere die Laufzeitdifferenz in Millisekunden
+        self.pegeldiff_db = 0 # Initialisiere die Pegeldifferenz in Dezibel
         
-        self.root = tk.Tk()
-        self.root.title("Phantomschallquelle GUI")
+        self.root = tk.Tk() # Erstelle das Hauptfenster der GUI
+        self.root.title("Phantomschallquelle GUI") # Setze den Titel des Fensters
         
-        self.setup_gui()
+        self.setup_gui() # Rufe die Methode zur Einrichtung der GUI auf
         
     def setup_gui(self):
+        # Erstelle und packe das Label für die Laufzeitdifferenz
         delay_label = ttk.Label(self.root, text="Laufzeitdifferenz (ms):")
         delay_label.pack()
+
+        # Erstelle und packe den Schieberegler für die Laufzeitdifferenz
         self.delay_scale = tk.Scale(self.root, from_=-4, to=4, orient='horizontal', length=300, command=self.update_delay_label, resolution=0.1)
         self.delay_scale.pack()
+
+        # Erstelle und packe das Label für den aktuellen Wert der Laufzeitdifferenz
         self.delay_value_label = ttk.Label(self.root, text="0.00 ms")
         self.delay_value_label.pack()
 
+        # Erstelle und packe das Label für die Pegeldifferenz
         pegeldiff_label = ttk.Label(self.root, text="Pegeldifferenz (dB):")
         pegeldiff_label.pack()
+
+        # Erstelle und packe den Schieberegler für die Pegeldifferenz
         self.pegeldiff_scale = tk.Scale(self.root, from_=-16, to=16, orient='horizontal', length=300, command=self.update_pegeldiff_label, resolution=0.1)
         self.pegeldiff_scale.pack()
+
+        # Erstelle und packe das Label für den aktuellen Wert der Pegeldifferenz
         self.pegeldiff_value_label = ttk.Label(self.root, text="0.00 dB")
         self.pegeldiff_value_label.pack()
 
+        # Erstelle und packe den "Play"-Button
         play_button = ttk.Button(self.root, text="Play", command=self.process_and_play)
         play_button.pack()
 
     def update_delay_label(self, value):
-        self.delay_ms = float(value)
+        self.delay_ms = float(value) # Aktualisiere die Laufzeitdifferenz
         self.delay_value_label.config(text=f"{self.delay_ms:.2f} ms")
 
     def update_pegeldiff_label(self, value):
-        self.pegeldiff_db = float(value)
-        self.pegeldiff_value_label.config(text=f"{self.pegeldiff_db:.2f} dB")
+        self.pegeldiff_db = float(value) # Aktualisiere die Pegeldifferenz
+        self.pegeldiff_value_label.config(text=f"{self.pegeldiff_db:.2f} dB") # Aktualisiere das Label
 
     def process_and_play(self):
-        sample_rate, audio_data = import_data(import_a)
+        sample_rate, audio_data = import_data(import_a) # Importiere die Audiodaten und die Abtastrate
         if sample_rate is not None and audio_data is not None:
-            self.teil_a(audio_data, sample_rate, self.delay_ms, self.pegeldiff_db)
+            self.teil_a(audio_data, sample_rate, self.delay_ms, self.pegeldiff_db) # Verarbeite und spiele das Audio
 
     def teil_a(self, audio_data, sample_rate, delay_ms, pegeldiff_db):
         # Laufzeitdifferenz anwenden
@@ -274,10 +309,10 @@ class PhantomschallquelleGUI:
         if max_val > 0:
             mixed_signal = mixed_signal / max_val
         
-        abspielen(mixed_signal, sample_rate)
+        abspielen(mixed_signal, sample_rate) # Spiele das gemischte Signal ab
 
     def run(self):
-        self.root.mainloop()
+        self.root.mainloop() # Starte die Hauptschleife der GUI
 
 if __name__ == "__main__":
     print("\nGUI von Lokilasation von Phantomschalquelle\n")
